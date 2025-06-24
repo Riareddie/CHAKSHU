@@ -74,8 +74,6 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className }) => {
         <div className="flex items-center gap-2">
           <WifiOff className="h-4 w-4" />
           <span>
-            Authentication service is currently unavailable. Demo mode is
-            active.
           </span>
         </div>
         {status.error && (
