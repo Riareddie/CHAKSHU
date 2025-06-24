@@ -20,7 +20,18 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Default context value to prevent undefined errors
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  session: null,
+  loading: true,
+  signUp: async () => ({ error: null }),
+  signIn: async () => ({ error: null }),
+  signOut: async () => {},
+  resetPassword: async () => ({ error: null }),
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
