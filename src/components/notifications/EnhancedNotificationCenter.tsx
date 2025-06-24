@@ -189,6 +189,12 @@ const EnhancedNotificationCenter: React.FC = () => {
     );
   }, [preferences]);
 
+  // Don't render notifications if user is not authenticated
+  // This must be placed AFTER all hook calls to follow Rules of Hooks
+  if (!user) {
+    return null;
+  }
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const getNotificationIcon = (type: Notification["type"]) => {
