@@ -38,7 +38,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
           </DialogTitle>
         </VisuallyHidden>
         <div className="relative">
-          <ConnectionStatus className="mb-4" />
           {mode === "login" ? (
             <LoginForm
               onSwitchToSignup={switchToSignup}
