@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
-import ConnectionStatus from "./ConnectionStatus";
 
 interface AuthModalProps {
   isOpen: boolean;
