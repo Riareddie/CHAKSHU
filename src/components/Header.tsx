@@ -68,6 +68,7 @@ const Header = () => {
     { to: "/mobile-app", label: t.header.mobileApp },
     { to: "/ai-features", label: t.header.aiFeatures },
     { to: "/guidelines", label: t.header.guidelines },
+    { to: "/profile", label: "Profile" },
     { to: "/help", label: t.header.help },
   ];
 
@@ -127,7 +128,8 @@ const Header = () => {
                 <Link
                   key={index}
                   to={item.to}
-                  className="text-gray-700 dark:text-white hover:text-india-saffron dark:hover:text-light-yellow font-medium transition-colors focus-visible-ring text-xs xl:text-sm 2xl:text-base whitespace-nowrap px-1 xl:px-2 py-1 rounded"
+                  className="text-gray-700 dark:text-white hover:text-india-saffron dark:hover:text-light-yellow font-medium text-xs xl:text-sm 2xl:text-base px-1 xl:px-2 py-1 transition-colors"
+                  onClick={closeMobileMenu}
                 >
                   {item.label}
                 </Link>

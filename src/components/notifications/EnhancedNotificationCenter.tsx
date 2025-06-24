@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Bell,
   BellRing,
@@ -56,6 +57,7 @@ interface NotificationPreferences {
 }
 
 const EnhancedNotificationCenter: React.FC = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     report_status: true,
@@ -186,6 +188,12 @@ const EnhancedNotificationCenter: React.FC = () => {
       JSON.stringify(preferences),
     );
   }, [preferences]);
+
+  // Don't render notifications if user is not authenticated
+  // This must be placed AFTER all hook calls to follow Rules of Hooks
+  if (!user) {
+    return null;
+  }
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
