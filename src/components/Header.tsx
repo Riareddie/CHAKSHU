@@ -68,6 +68,7 @@ const Header = () => {
     { to: "/mobile-app", label: t.header.mobileApp },
     { to: "/ai-features", label: t.header.aiFeatures },
     { to: "/guidelines", label: t.header.guidelines },
+    { to: "/profile", label: "Profile" },
     { to: "/help", label: t.header.help },
   ];
 
@@ -124,18 +125,13 @@ const Header = () => {
               aria-label={t.accessibility.mainNavigation}
             >
               {navigationItems.slice(0, 8).map((item, index) => (
-              <Link
-                to="/dashboard"
-                className="text-gray-700 hover:text-india-saffron px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                {t("header.dashboard")}
-              </Link>
-              <Link
-                to="/profile"
-                className="text-gray-700 hover:text-india-saffron px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Profile
-              </Link>
+                <Link
+                  key={index}
+                  to={item.to}
+                  className="text-gray-700 dark:text-white hover:text-india-saffron dark:hover:text-light-yellow font-medium text-xs xl:text-sm 2xl:text-base px-1 xl:px-2 py-1 transition-colors"
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
                 </Link>
               ))}
 
