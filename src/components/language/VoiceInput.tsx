@@ -788,18 +788,70 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
         // Get available voices
         const voices = speechSynthesis.getVoices();
 
-        // Find the best voice for the current language
-        let selectedVoice = voices.find(
-          (voice) =>
-            voice.lang === currentLang.code ||
-            voice.lang.startsWith(currentLang.code.split("-")[0]),
-        );
+        // Enhanced multilingual voice selection
+        const getLanguageCode = () => {
+          const langMap: { [key: string]: string } = {
+            en: "en-US",
+            hi: "hi-IN",
+            bn: "bn-IN",
+            te: "te-IN",
+            mr: "mr-IN",
+            ta: "ta-IN",
+            gu: "gu-IN",
+            ur: "ur-IN",
+            kn: "kn-IN",
+            or: "or-IN",
+            ml: "ml-IN",
+            pa: "pa-IN",
+            as: "as-IN",
+          };
+          return langMap[language] || langMap[currentLang.code] || "en-US";
+        };
 
-        // Fallback to any voice with the language prefix
+        const targetLang = getLanguageCode();
+
+        // Find the best voice for the current language with priority order
+        let selectedVoice = voices.find((voice) => voice.lang === targetLang);
+
+        // Fallback 1: Try with just the language code (without region)
         if (!selectedVoice) {
+          const langCode = targetLang.split("-")[0];
           selectedVoice = voices.find((voice) =>
-            voice.lang.startsWith(currentLang.code.split("-")[0]),
+            voice.lang.startsWith(langCode + "-"),
           );
+        }
+
+        // Fallback 2: Try with language code only
+        if (!selectedVoice) {
+          const langCode = targetLang.split("-")[0];
+          selectedVoice = voices.find((voice) => voice.lang === langCode);
+        }
+
+        // Fallback 3: Find any voice that contains the language
+        if (!selectedVoice) {
+          const langCode = targetLang.split("-")[0];
+          selectedVoice = voices.find((voice) => voice.lang.includes(langCode));
+        }
+
+        // Fallback 4: Prefer local voices for Indian languages
+        if (
+          !selectedVoice &&
+          [
+            "hi",
+            "bn",
+            "te",
+            "mr",
+            "ta",
+            "gu",
+            "ur",
+            "kn",
+            "or",
+            "ml",
+            "pa",
+            "as",
+          ].includes(language)
+        ) {
+          selectedVoice = voices.find((voice) => voice.localService);
         }
 
         // Final fallback to default voice
@@ -809,10 +861,37 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
 
         if (selectedVoice) {
           utterance.voice = selectedVoice;
+          console.log(
+            `Selected voice: ${selectedVoice.name} (${selectedVoice.lang}) for language: ${language}`,
+          );
         }
 
-        utterance.lang = currentLang.code;
-        utterance.rate = language === "hi" || language === "ur" ? 0.75 : 0.85; // Slower for complex scripts
+        utterance.lang = targetLang;
+
+        // Adjust speech rate based on language complexity and script
+        const getOptimalRate = () => {
+          if (
+            [
+              "hi",
+              "ur",
+              "bn",
+              "te",
+              "mr",
+              "ta",
+              "gu",
+              "kn",
+              "or",
+              "ml",
+              "pa",
+              "as",
+            ].includes(language)
+          ) {
+            return 0.75; // Slower for complex Indian scripts
+          }
+          return 0.85; // Standard rate for Latin scripts
+        };
+
+        utterance.rate = getOptimalRate();
         utterance.pitch = 1.0;
         utterance.volume = 0.9;
 
@@ -824,10 +903,18 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
           console.warn("Speech synthesis error:", event.error);
           setIsSpeaking(false);
           toast({
-            title: "Speech Playback Error",
-            description: "Unable to play audio. Please try again.",
+            title: t?.("speech_error") || "Speech Playback Error",
+            description:
+              t?.("speech_error_desc") ||
+              "Unable to play audio. Please try again.",
             variant: "destructive",
           });
+        };
+
+        utterance.onstart = () => {
+          console.log(
+            `Starting TTS for language: ${language} with voice: ${selectedVoice?.name || "default"}`,
+          );
         };
 
         speechSynthesis.speak(utterance);
@@ -845,8 +932,10 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
       }
     } else {
       toast({
-        title: "Speech Not Supported",
-        description: "Text-to-speech is not supported in this browser.",
+        title: t?.("speech_not_supported") || "Speech Not Supported",
+        description:
+          t?.("speech_not_supported_desc") ||
+          "Text-to-speech is not supported in this browser.",
         variant: "destructive",
       });
     }
