@@ -74,11 +74,6 @@ const EnhancedNotificationCenter: React.FC = () => {
   );
   const { toast } = useToast();
 
-  // Don't render notifications if user is not authenticated
-  if (!user) {
-    return null;
-  }
-
   // Generate sample notifications
   useEffect(() => {
     const sampleNotifications: Notification[] = [
