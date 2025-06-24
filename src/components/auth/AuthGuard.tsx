@@ -92,7 +92,24 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   showPrompt = true,
   message,
 }) => {
-  const { user, loading } = useAuth();
+  // Add try-catch for useAuth call
+  let authState;
+  try {
+    authState = useAuth();
+  } catch (error) {
+    console.error("AuthGuard: Failed to get auth context:", error);
+    // Return a loading state or fallback when auth context is not available
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-india-saffron mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { user, loading } = authState;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
