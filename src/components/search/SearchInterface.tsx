@@ -1,17 +1,20 @@
-
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Download, Clock, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import SearchFilters from './SearchFilters';
-import SearchResults from './SearchResults';
-import RecentSearches from './RecentSearches';
-import SearchSuggestions from './SearchSuggestions';
-import VoiceSearch from './VoiceSearch';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Download, Clock, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import SearchFilters from "./SearchFilters";
+import SearchResults from "./SearchResults";
+import RecentSearches from "./RecentSearches";
+import SearchSuggestions from "./SearchSuggestions";
+import VoiceSearch from "./VoiceSearch";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchState {
   query: string;
@@ -22,58 +25,117 @@ interface SearchState {
     severity: number[];
     status: string[];
   };
-  sortBy: 'date' | 'relevance' | 'severity';
-  sortOrder: 'asc' | 'desc';
+  sortBy: "date" | "relevance" | "severity";
+  sortOrder: "asc" | "desc";
 }
 
 const SearchInterface = () => {
   const { toast } = useToast();
   const [searchState, setSearchState] = useState<SearchState>({
-    query: '',
+    query: "",
     filters: {
       dateRange: { from: null, to: null },
       fraudTypes: [],
-      location: '',
+      location: "",
       severity: [1, 10],
-      status: []
+      status: [],
     },
-    sortBy: 'relevance',
-    sortOrder: 'desc'
+    sortBy: "relevance",
+    sortOrder: "desc",
   });
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [searchSettings, setSearchSettings] = useState({
+    autoSuggestions: true,
+    voiceSearch: true,
+    searchHistory: true,
+    realTimeResults: false,
+    resultsPerPage: 20,
+    defaultSortBy: "relevance",
+    safeSearch: true,
+    includeArchived: false,
+    searchTimeout: 5000,
+    cacheResults: true,
+  });
 
-  // Load recent searches from localStorage
+  // Load search settings and recent searches from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('recent-searches');
-    if (saved) {
+    // Load search settings
+    const savedSettings = localStorage.getItem("search-settings");
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        setSearchSettings(settings);
+        // Apply default sort from settings
+        setSearchState((prev) => ({
+          ...prev,
+          sortBy: settings.defaultSortBy,
+        }));
+      } catch (error) {
+        console.error("Failed to load search settings:", error);
+      }
+    }
+
+    // Load recent searches only if search history is enabled
+    const saved = localStorage.getItem("recent-searches");
+    if (saved && searchSettings.searchHistory) {
       try {
         setRecentSearches(JSON.parse(saved));
       } catch (error) {
-        console.error('Failed to load recent searches:', error);
+        console.error("Failed to load recent searches:", error);
       }
     }
   }, []);
 
+  // Listen for search settings changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedSettings = localStorage.getItem("search-settings");
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          setSearchSettings(settings);
+        } catch (error) {
+          console.error("Failed to reload search settings:", error);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const updateSearchState = (updates: Partial<SearchState>) => {
-    setSearchState(prev => ({ ...prev, ...updates }));
+    setSearchState((prev) => ({ ...prev, ...updates }));
   };
 
   const handleQueryChange = (query: string) => {
-    setSearchState(prev => ({ ...prev, query }));
-    setShowSuggestions(query.length > 0);
+    setSearchState((prev) => ({ ...prev, query }));
+    // Only show suggestions if auto-suggestions is enabled
+    setShowSuggestions(query.length > 0 && searchSettings.autoSuggestions);
+
+    // Real-time search if enabled
+    if (searchSettings.realTimeResults && query.length > 2) {
+      const timeoutId = setTimeout(() => {
+        handleSearch(true); // Silent search
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (isRealTime = false) => {
     if (!searchState.query.trim()) {
-      toast({
-        title: "Search Required",
-        description: "Please enter a search term to continue.",
-        variant: "destructive"
-      });
+      if (!isRealTime) {
+        toast({
+          title: "Search Required",
+          description: "Please enter a search term to continue.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -81,54 +143,77 @@ const SearchInterface = () => {
     setShowSuggestions(false);
 
     try {
-      // Add to recent searches
-      const newRecentSearches = [
-        searchState.query,
-        ...recentSearches.filter(s => s !== searchState.query)
-      ].slice(0, 10);
-      
-      setRecentSearches(newRecentSearches);
-      localStorage.setItem('recent-searches', JSON.stringify(newRecentSearches));
+      // Add to recent searches only if search history is enabled
+      if (searchSettings.searchHistory && !isRealTime) {
+        const newRecentSearches = [
+          searchState.query,
+          ...recentSearches.filter((s) => s !== searchState.query),
+        ].slice(0, 10);
 
-      // Simulate search delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+        setRecentSearches(newRecentSearches);
+        localStorage.setItem(
+          "recent-searches",
+          JSON.stringify(newRecentSearches),
+        );
+      }
 
-      toast({
-        title: "Search Complete",
-        description: `Found results for "${searchState.query}"`,
-      });
+      // Use search timeout from settings
+      const searchPromise = new Promise((resolve) => setTimeout(resolve, 800));
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Search timeout")),
+          searchSettings.searchTimeout,
+        ),
+      );
+
+      await Promise.race([searchPromise, timeoutPromise]);
+
+      if (!isRealTime) {
+        toast({
+          title: "Search Complete",
+          description: `Found results for "${searchState.query}"`,
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Search Failed",
-        description: "An error occurred while searching. Please try again.",
-        variant: "destructive"
-      });
+      if (!isRealTime) {
+        toast({
+          title: "Search Failed",
+          description:
+            error instanceof Error && error.message === "Search timeout"
+              ? "Search timed out. Please try again."
+              : "An error occurred while searching. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handleFilterChange = (filters: Partial<SearchState['filters']>) => {
-    setSearchState(prev => ({
+  const handleFilterChange = (filters: Partial<SearchState["filters"]>) => {
+    setSearchState((prev) => ({
       ...prev,
-      filters: { ...prev.filters, ...filters }
+      filters: { ...prev.filters, ...filters },
     }));
   };
 
-  const handleSortChange = (sortBy: 'date' | 'relevance' | 'severity', sortOrder: 'asc' | 'desc') => {
-    setSearchState(prev => ({ ...prev, sortBy, sortOrder }));
+  const handleSortChange = (
+    sortBy: "date" | "relevance" | "severity",
+    sortOrder: "asc" | "desc",
+  ) => {
+    setSearchState((prev) => ({ ...prev, sortBy, sortOrder }));
   };
 
   const clearAllFilters = () => {
-    setSearchState(prev => ({
+    setSearchState((prev) => ({
       ...prev,
       filters: {
         dateRange: { from: null, to: null },
         fraudTypes: [],
-        location: '',
+        location: "",
         severity: [1, 10],
-        status: []
-      }
+        status: [],
+      },
     }));
     toast({
       title: "Filters Cleared",
@@ -141,24 +226,26 @@ const SearchInterface = () => {
       title: "Export Started",
       description: "Your search results are being prepared for download.",
     });
-    
+
     // Simulate export
     setTimeout(() => {
       const data = {
         query: searchState.query,
         filters: searchState.filters,
         timestamp: new Date().toISOString(),
-        results: "Search results data would be here..."
+        results: "Search results data would be here...",
       };
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `search-results-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Export Complete",
         description: "Search results have been downloaded.",
@@ -174,13 +261,14 @@ const SearchInterface = () => {
     });
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     searchState.filters.fraudTypes.length > 0 ||
-    searchState.filters.location !== '' ||
+    searchState.filters.location !== "" ||
     searchState.filters.status.length > 0 ||
     searchState.filters.dateRange.from ||
     searchState.filters.dateRange.to ||
-    (searchState.filters.severity[0] !== 1 || searchState.filters.severity[1] !== 10);
+    searchState.filters.severity[0] !== 1 ||
+    searchState.filters.severity[1] !== 10;
 
   return (
     <div className="space-y-6">
@@ -200,7 +288,7 @@ const SearchInterface = () => {
                 placeholder="Search fraud reports, discussions, and educational content..."
                 value={searchState.query}
                 onChange={(e) => handleQueryChange(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pr-12"
               />
               {searchState.query && (
@@ -208,16 +296,18 @@ const SearchInterface = () => {
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1 h-8 w-8 p-0"
-                  onClick={() => handleQueryChange('')}
+                  onClick={() => handleQueryChange("")}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
-            
-            <VoiceSearch onResult={handleVoiceResult} />
-            
-            <Button 
+
+            {searchSettings.voiceSearch && (
+              <VoiceSearch onResult={handleVoiceResult} />
+            )}
+
+            <Button
               onClick={handleSearch}
               disabled={isSearching || !searchState.query.trim()}
               className="bg-india-saffron hover:bg-saffron-600"
@@ -246,45 +336,56 @@ const SearchInterface = () => {
           )}
 
           {/* Recent Searches */}
-          {!showSuggestions && searchState.query === '' && recentSearches.length > 0 && (
-            <RecentSearches
-              searches={recentSearches}
-              onSelect={handleQueryChange}
-            />
-          )}
+          {!showSuggestions &&
+            searchState.query === "" &&
+            searchSettings.searchHistory &&
+            recentSearches.length > 0 && (
+              <RecentSearches
+                searches={recentSearches}
+                onSelect={handleQueryChange}
+              />
+            )}
 
           {/* Active Filters Summary */}
           {hasActiveFilters && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-gray-600">Active filters:</span>
-              {searchState.filters.fraudTypes.map(type => (
+              {searchState.filters.fraudTypes.map((type) => (
                 <Badge key={type} variant="secondary" className="gap-1">
                   {type}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => handleFilterChange({
-                      fraudTypes: searchState.filters.fraudTypes.filter(t => t !== type)
-                    })}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() =>
+                      handleFilterChange({
+                        fraudTypes: searchState.filters.fraudTypes.filter(
+                          (t) => t !== type,
+                        ),
+                      })
+                    }
                   />
                 </Badge>
               ))}
               {searchState.filters.location && (
                 <Badge variant="secondary" className="gap-1">
                   {searchState.filters.location}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => handleFilterChange({ location: '' })}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => handleFilterChange({ location: "" })}
                   />
                 </Badge>
               )}
-              {searchState.filters.status.map(status => (
+              {searchState.filters.status.map((status) => (
                 <Badge key={status} variant="secondary" className="gap-1">
                   {status}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => handleFilterChange({
-                      status: searchState.filters.status.filter(s => s !== status)
-                    })}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() =>
+                      handleFilterChange({
+                        status: searchState.filters.status.filter(
+                          (s) => s !== status,
+                        ),
+                      })
+                    }
                   />
                 </Badge>
               ))}
@@ -307,13 +408,16 @@ const SearchInterface = () => {
           <CollapsibleTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {isFiltersOpen ? 'Hide Filters' : 'Show Filters'}
+              {isFiltersOpen ? "Hide Filters" : "Show Filters"}
               {hasActiveFilters && (
                 <Badge variant="default" className="ml-1">
-                  {searchState.filters.fraudTypes.length + 
-                   searchState.filters.status.length + 
-                   (searchState.filters.location ? 1 : 0) +
-                   (searchState.filters.dateRange.from || searchState.filters.dateRange.to ? 1 : 0)}
+                  {searchState.filters.fraudTypes.length +
+                    searchState.filters.status.length +
+                    (searchState.filters.location ? 1 : 0) +
+                    (searchState.filters.dateRange.from ||
+                    searchState.filters.dateRange.to
+                      ? 1
+                      : 0)}
                 </Badge>
               )}
             </Button>
