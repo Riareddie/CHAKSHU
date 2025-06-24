@@ -124,12 +124,18 @@ const Header = () => {
               aria-label={t.accessibility.mainNavigation}
             >
               {navigationItems.slice(0, 8).map((item, index) => (
-                <Link
-                  key={index}
-                  to={item.to}
-                  className="text-gray-700 dark:text-white hover:text-india-saffron dark:hover:text-light-yellow font-medium transition-colors focus-visible-ring text-xs xl:text-sm 2xl:text-base whitespace-nowrap px-1 xl:px-2 py-1 rounded"
-                >
-                  {item.label}
+              <Link
+                to="/dashboard"
+                className="text-gray-700 hover:text-india-saffron px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                {t("header.dashboard")}
+              </Link>
+              <Link
+                to="/profile"
+                className="text-gray-700 hover:text-india-saffron px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Profile
+              </Link>
                 </Link>
               ))}
 
