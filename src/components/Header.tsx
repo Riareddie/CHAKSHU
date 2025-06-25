@@ -68,7 +68,6 @@ const Header = () => {
     { to: "/mobile-app", label: t.header.mobileApp },
     { to: "/ai-features", label: t.header.aiFeatures },
     { to: "/guidelines", label: t.header.guidelines },
-    { to: "/profile", label: "Profile" },
     { to: "/help", label: t.header.help },
   ];
 
