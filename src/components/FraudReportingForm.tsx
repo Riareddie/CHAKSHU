@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
 import useFormValidation, {
   enhancedValidations,
-} from "@/hooks/useFormValidation";
+} from "@/hooks/useFormValidation.tsx";
 
 interface FormData {
   fraudType: string;
