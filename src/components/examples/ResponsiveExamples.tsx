@@ -3,31 +3,39 @@
  * Showcases all responsive components for government website
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ResponsiveGrid, 
-  ResponsiveContainer, 
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ResponsiveGrid,
+  ResponsiveContainer,
   ResponsiveStack,
   ResponsiveSection,
   ResponsiveImage,
   ResponsiveHeading,
   useBreakpoint,
-  useCurrentBreakpoint
-} from '@/components/layout/ResponsiveLayout';
-import ResponsiveTable from '@/components/ui/ResponsiveTable';
-import ResponsiveModal, { useResponsiveModal } from '@/components/ui/ResponsiveModal';
-import ResponsiveNavigation from '@/components/navigation/ResponsiveNavigation';
-import FraudReportForm from '@/components/forms/FraudReportForm';
-import { 
-  Smartphone, 
-  Tablet, 
-  Monitor, 
-  Check, 
-  X, 
+  useCurrentBreakpoint,
+} from "@/components/layout/ResponsiveLayout";
+import ResponsiveTable from "@/components/ui/ResponsiveTable";
+import ResponsiveModal, {
+  useResponsiveModal,
+} from "@/components/ui/ResponsiveModal";
+import ResponsiveNavigation from "@/components/navigation/ResponsiveNavigation";
+import FraudReportForm from "@/components/forms/FraudReportForm";
+import {
+  Smartphone,
+  Tablet,
+  Monitor,
+  Check,
+  X,
   Eye,
   Edit,
   Trash2,
@@ -36,207 +44,217 @@ import {
   BarChart3,
   Settings,
   Home,
-  Shield
-} from 'lucide-react';
+  Shield,
+} from "lucide-react";
 
 // Sample data for table
 const sampleReports = [
   {
-    id: 'FR001',
-    title: 'Investment Fraud via WhatsApp',
-    category: 'Investment Fraud',
+    id: "FR001",
+    title: "Investment Fraud via WhatsApp",
+    category: "Investment Fraud",
     amount: 50000,
-    status: 'Under Investigation',
-    date: '2024-01-15',
-    priority: 'High',
-    assignedTo: 'Officer Sharma',
+    status: "Under Investigation",
+    date: "2024-01-15",
+    priority: "High",
+    assignedTo: "Officer Sharma",
   },
   {
-    id: 'FR002',
-    title: 'Fake Job Offer Scam',
-    category: 'Employment Fraud',
+    id: "FR002",
+    title: "Fake Job Offer Scam",
+    category: "Employment Fraud",
     amount: 15000,
-    status: 'Resolved',
-    date: '2024-01-10',
-    priority: 'Medium',
-    assignedTo: 'Officer Kumar',
+    status: "Resolved",
+    date: "2024-01-10",
+    priority: "Medium",
+    assignedTo: "Officer Kumar",
   },
   {
-    id: 'FR003',
-    title: 'Credit Card Phishing',
-    category: 'Cyber Fraud',
+    id: "FR003",
+    title: "Credit Card Phishing",
+    category: "Cyber Fraud",
     amount: 25000,
-    status: 'Pending Review',
-    date: '2024-01-20',
-    priority: 'High',
-    assignedTo: 'Officer Singh',
+    status: "Pending Review",
+    date: "2024-01-20",
+    priority: "High",
+    assignedTo: "Officer Singh",
   },
 ];
 
 const tableColumns = [
   {
-    key: 'id',
-    label: 'Report ID',
+    key: "id",
+    label: "Report ID",
     sortable: true,
     sticky: true,
-    width: '120px',
+    width: "120px",
   },
   {
-    key: 'title',
-    label: 'Title',
+    key: "title",
+    label: "Title",
     sortable: true,
     searchable: true,
-    minWidth: '200px',
+    minWidth: "200px",
   },
   {
-    key: 'category',
-    label: 'Category',
+    key: "category",
+    label: "Category",
     sortable: true,
     filterable: true,
     hideOnMobile: true,
-    render: (value: string) => (
-      <Badge variant="outline">{value}</Badge>
-    ),
+    render: (value: string) => <Badge variant="outline">{value}</Badge>,
   },
   {
-    key: 'amount',
-    label: 'Amount',
+    key: "amount",
+    label: "Amount",
     sortable: true,
-    align: 'right' as const,
+    align: "right" as const,
     hideOnMobile: true,
-    render: (value: number) => `₹${value.toLocaleString('en-IN')}`,
+    render: (value: number) => `₹${value.toLocaleString("en-IN")}`,
   },
   {
-    key: 'status',
-    label: 'Status',
+    key: "status",
+    label: "Status",
     sortable: true,
     render: (value: string) => {
       const variants = {
-        'Under Investigation': 'default',
-        'Resolved': 'success',
-        'Pending Review': 'warning',
+        "Under Investigation": "default",
+        Resolved: "success",
+        "Pending Review": "warning",
       } as const;
-      return <Badge variant={variants[value as keyof typeof variants] || 'secondary'}>{value}</Badge>;
+      return (
+        <Badge
+          variant={variants[value as keyof typeof variants] || "secondary"}
+        >
+          {value}
+        </Badge>
+      );
     },
   },
   {
-    key: 'date',
-    label: 'Date',
+    key: "date",
+    label: "Date",
     sortable: true,
     hideOnMobile: true,
   },
   {
-    key: 'priority',
-    label: 'Priority',
+    key: "priority",
+    label: "Priority",
     hideOnMobile: true,
     render: (value: string) => {
       const colors = {
-        High: 'text-red-600',
-        Medium: 'text-yellow-600',
-        Low: 'text-green-600',
+        High: "text-red-600",
+        Medium: "text-yellow-600",
+        Low: "text-green-600",
       };
-      return <span className={colors[value as keyof typeof colors]}>{value}</span>;
+      return (
+        <span className={colors[value as keyof typeof colors]}>{value}</span>
+      );
     },
   },
 ];
 
 const tableActions = [
   {
-    label: 'View',
+    label: "View",
     icon: <Eye className="h-4 w-4" />,
-    onClick: (row: any) => console.log('View:', row.id),
-    variant: 'outline' as const,
+    onClick: (row: any) => console.log("View:", row.id),
+    variant: "outline" as const,
   },
   {
-    label: 'Edit',
+    label: "Edit",
     icon: <Edit className="h-4 w-4" />,
-    onClick: (row: any) => console.log('Edit:', row.id),
-    variant: 'outline' as const,
+    onClick: (row: any) => console.log("Edit:", row.id),
+    variant: "outline" as const,
   },
   {
-    label: 'Delete',
+    label: "Delete",
     icon: <Trash2 className="h-4 w-4" />,
-    onClick: (row: any) => console.log('Delete:', row.id),
-    variant: 'destructive' as const,
-    disabled: (row: any) => row.status === 'Resolved',
+    onClick: (row: any) => console.log("Delete:", row.id),
+    variant: "destructive" as const,
+    disabled: (row: any) => row.status === "Resolved",
   },
 ];
 
 // Navigation items
 const navItems = [
   {
-    id: 'home',
-    label: 'Home',
-    href: '/',
+    id: "home",
+    label: "Home",
+    href: "/",
     icon: <Home className="h-4 w-4" />,
   },
   {
-    id: 'reports',
-    label: 'Reports',
-    href: '/reports',
+    id: "reports",
+    label: "Reports",
+    href: "/reports",
     icon: <FileText className="h-4 w-4" />,
-    badge: '12',
+    badge: "12",
     children: [
-      { id: 'create-report', label: 'Create Report', href: '/reports/create' },
-      { id: 'my-reports', label: 'My Reports', href: '/reports/mine' },
-      { id: 'all-reports', label: 'All Reports', href: '/reports/all' },
+      { id: "create-report", label: "Create Report", href: "/reports/create" },
+      { id: "my-reports", label: "My Reports", href: "/reports/mine" },
+      { id: "all-reports", label: "All Reports", href: "/reports/all" },
     ],
   },
   {
-    id: 'analytics',
-    label: 'Analytics',
-    href: '/analytics',
+    id: "analytics",
+    label: "Analytics",
+    href: "/analytics",
     icon: <BarChart3 className="h-4 w-4" />,
   },
   {
-    id: 'users',
-    label: 'Users',
-    href: '/users',
+    id: "users",
+    label: "Users",
+    href: "/users",
     icon: <Users className="h-4 w-4" />,
     desktopOnly: true,
   },
   {
-    id: 'settings',
-    label: 'Settings',
-    href: '/settings',
+    id: "settings",
+    label: "Settings",
+    href: "/settings",
     icon: <Settings className="h-4 w-4" />,
   },
 ];
 
 const ResponsiveExamples: React.FC = () => {
   const { isOpen: isModalOpen, openModal, closeModal } = useResponsiveModal();
-  const { isOpen: isFormModalOpen, openModal: openFormModal, closeModal: closeFormModal } = useResponsiveModal();
-  
-  const isLargeScreen = useBreakpoint('lg');
+  const {
+    isOpen: isFormModalOpen,
+    openModal: openFormModal,
+    closeModal: closeFormModal,
+  } = useResponsiveModal();
+
+  const isLargeScreen = useBreakpoint("lg");
   const currentBreakpoint = useCurrentBreakpoint();
-  
+
   // Mock user data
   const mockUser = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'Senior Officer',
+    name: "John Doe",
+    email: "john.doe@example.com",
+    role: "Senior Officer",
     avatar: undefined,
   };
 
   const mockActions = {
     notifications: {
       count: 5,
-      onClick: () => console.log('Notifications clicked'),
+      onClick: () => console.log("Notifications clicked"),
     },
     search: {
-      onSearch: (query: string) => console.log('Search:', query),
-      placeholder: 'Search reports...',
+      onSearch: (query: string) => console.log("Search:", query),
+      placeholder: "Search reports...",
     },
     user: {
-      onProfile: () => console.log('Profile clicked'),
-      onSettings: () => console.log('Settings clicked'),
-      onLogout: () => console.log('Logout clicked'),
+      onProfile: () => console.log("Profile clicked"),
+      onSettings: () => console.log("Settings clicked"),
+      onLogout: () => console.log("Logout clicked"),
     },
   };
 
   const handleFormSubmit = async (data: any) => {
-    console.log('Form submitted:', data);
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+    console.log("Form submitted:", data);
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
     closeFormModal();
   };
 
@@ -245,9 +263,9 @@ const ResponsiveExamples: React.FC = () => {
       {/* Responsive Navigation Demo */}
       <ResponsiveNavigation
         brand={{
-          name: 'Chakshu Portal',
+          name: "Chakshu Portal",
           logo: <Shield className="h-8 w-8 text-blue-600" />,
-          href: '/',
+          href: "/",
         }}
         items={navItems}
         user={mockUser}
@@ -275,12 +293,18 @@ const ResponsiveExamples: React.FC = () => {
                 {currentBreakpoint.toUpperCase()}
               </Badge>
               <div className="flex items-center space-x-2">
-                <Smartphone className={`h-4 w-4 ${currentBreakpoint === 'sm' ? 'text-blue-600' : 'text-gray-400'}`} />
-                <Tablet className={`h-4 w-4 ${currentBreakpoint === 'md' ? 'text-blue-600' : 'text-gray-400'}`} />
-                <Monitor className={`h-4 w-4 ${['lg', 'xl', '2xl'].includes(currentBreakpoint) ? 'text-blue-600' : 'text-gray-400'}`} />
+                <Smartphone
+                  className={`h-4 w-4 ${currentBreakpoint === "sm" ? "text-blue-600" : "text-gray-400"}`}
+                />
+                <Tablet
+                  className={`h-4 w-4 ${currentBreakpoint === "md" ? "text-blue-600" : "text-gray-400"}`}
+                />
+                <Monitor
+                  className={`h-4 w-4 ${["lg", "xl", "2xl"].includes(currentBreakpoint) ? "text-blue-600" : "text-gray-400"}`}
+                />
               </div>
               <span className="text-sm text-muted-foreground">
-                Large screen: {isLargeScreen ? 'Yes' : 'No'}
+                Large screen: {isLargeScreen ? "Yes" : "No"}
               </span>
             </div>
           </CardContent>
@@ -304,12 +328,12 @@ const ResponsiveExamples: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveGrid 
-                  cols={{ default: 1, sm: 2, md: 3, lg: 4 }} 
+                <ResponsiveGrid
+                  cols={{ default: 1, sm: 2, md: 3, lg: 4 }}
                   gap={4}
                   className="mb-6"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                     <Card key={num}>
                       <CardContent className="p-4 text-center">
                         <div className="bg-blue-100 dark:bg-blue-900 rounded-lg p-4">
@@ -335,15 +359,21 @@ const ResponsiveExamples: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveStack
-                  direction={{ default: 'column', md: 'row' }}
+                  direction={{ default: "column", md: "row" }}
                   gap={4}
                   align="center"
                   justify="between"
                   className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
                 >
-                  <div className="bg-green-100 dark:bg-green-900 p-4 rounded">Item 1</div>
-                  <div className="bg-yellow-100 dark:bg-yellow-900 p-4 rounded">Item 2</div>
-                  <div className="bg-red-100 dark:bg-red-900 p-4 rounded">Item 3</div>
+                  <div className="bg-green-100 dark:bg-green-900 p-4 rounded">
+                    Item 1
+                  </div>
+                  <div className="bg-yellow-100 dark:bg-yellow-900 p-4 rounded">
+                    Item 2
+                  </div>
+                  <div className="bg-red-100 dark:bg-red-900 p-4 rounded">
+                    Item 3
+                  </div>
                 </ResponsiveStack>
                 <div className="text-sm text-muted-foreground mt-2">
                   Stacks vertically on mobile, horizontally on desktop
@@ -359,12 +389,21 @@ const ResponsiveExamples: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ResponsiveHeading level={1}>Main Heading (H1)</ResponsiveHeading>
-                <ResponsiveHeading level={2}>Section Heading (H2)</ResponsiveHeading>
-                <ResponsiveHeading level={3}>Subsection Heading (H3)</ResponsiveHeading>
-                <ResponsiveHeading level={4}>Component Heading (H4)</ResponsiveHeading>
+                <ResponsiveHeading level={1}>
+                  Main Heading (H1)
+                </ResponsiveHeading>
+                <ResponsiveHeading level={2}>
+                  Section Heading (H2)
+                </ResponsiveHeading>
+                <ResponsiveHeading level={3}>
+                  Subsection Heading (H3)
+                </ResponsiveHeading>
+                <ResponsiveHeading level={4}>
+                  Component Heading (H4)
+                </ResponsiveHeading>
                 <p className="text-base sm:text-lg">
-                  This paragraph text also responds to screen size changes for optimal readability.
+                  This paragraph text also responds to screen size changes for
+                  optimal readability.
                 </p>
               </CardContent>
             </Card>
@@ -376,7 +415,8 @@ const ResponsiveExamples: React.FC = () => {
               <CardHeader>
                 <CardTitle>Government Fraud Report Form</CardTitle>
                 <CardDescription>
-                  Comprehensive form with validation, progress tracking, and mobile optimization
+                  Comprehensive form with validation, progress tracking, and
+                  mobile optimization
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -415,7 +455,8 @@ const ResponsiveExamples: React.FC = () => {
               <CardHeader>
                 <CardTitle>Responsive Data Table</CardTitle>
                 <CardDescription>
-                  Tables that adapt to mobile with card view and horizontal scroll
+                  Tables that adapt to mobile with card view and horizontal
+                  scroll
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -430,12 +471,12 @@ const ResponsiveExamples: React.FC = () => {
                     page: 1,
                     pageSize: 10,
                     total: sampleReports.length,
-                    onPageChange: (page) => console.log('Page:', page),
-                    onPageSizeChange: (size) => console.log('Page size:', size),
+                    onPageChange: (page) => console.log("Page:", page),
+                    onPageSizeChange: (size) => console.log("Page size:", size),
                   }}
                   mobileView="cards"
-                  onRowClick={(row) => console.log('Row clicked:', row)}
-                  onExport={() => console.log('Export clicked')}
+                  onRowClick={(row) => console.log("Row clicked:", row)}
+                  onExport={() => console.log("Export clicked")}
                 />
               </CardContent>
             </Card>
@@ -452,9 +493,7 @@ const ResponsiveExamples: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveStack direction="row" gap={4} wrap>
-                  <Button onClick={openModal}>
-                    Standard Modal
-                  </Button>
+                  <Button onClick={openModal}>Standard Modal</Button>
                   <Button variant="outline" onClick={() => {}}>
                     Alert Modal
                   </Button>
@@ -476,7 +515,7 @@ const ResponsiveExamples: React.FC = () => {
                       </ul>
                     </div>
                     <div>
-                      <strong>Mobile (< lg):</strong>
+                      <strong>Mobile (&lt; lg):</strong>
                       <ul className="mt-1 space-y-1">
                         <li>• Bottom sheet drawer</li>
                         <li>• Swipe to close</li>
@@ -504,7 +543,8 @@ const ResponsiveExamples: React.FC = () => {
                       Touch Targets
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Minimum 44px height for all interactive elements following WCAG AA guidelines
+                      Minimum 44px height for all interactive elements following
+                      WCAG AA guidelines
                     </p>
                   </div>
 
@@ -514,7 +554,8 @@ const ResponsiveExamples: React.FC = () => {
                       Responsive Typography
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Text scales appropriately across devices for optimal readability
+                      Text scales appropriately across devices for optimal
+                      readability
                     </p>
                   </div>
 
@@ -524,7 +565,8 @@ const ResponsiveExamples: React.FC = () => {
                       Flexible Layouts
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Grid and flexbox systems adapt to any screen size seamlessly
+                      Grid and flexbox systems adapt to any screen size
+                      seamlessly
                     </p>
                   </div>
 
@@ -534,7 +576,8 @@ const ResponsiveExamples: React.FC = () => {
                       Mobile Navigation
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Hamburger menu with collapsible sections and touch-friendly spacing
+                      Hamburger menu with collapsible sections and
+                      touch-friendly spacing
                     </p>
                   </div>
 
@@ -544,7 +587,8 @@ const ResponsiveExamples: React.FC = () => {
                       Form Optimization
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Large input fields, clear labels, and real-time validation feedback
+                      Large input fields, clear labels, and real-time validation
+                      feedback
                     </p>
                   </div>
 
@@ -554,7 +598,8 @@ const ResponsiveExamples: React.FC = () => {
                       Progressive Enhancement
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Core functionality works without JavaScript, enhanced with interactions
+                      Core functionality works without JavaScript, enhanced with
+                      interactions
                     </p>
                   </div>
                 </ResponsiveGrid>
@@ -573,15 +618,17 @@ const ResponsiveExamples: React.FC = () => {
         >
           <div className="space-y-4">
             <p>
-              This modal automatically switches between a dialog on desktop and a drawer on mobile.
-              Try resizing your browser window to see the behavior change.
+              This modal automatically switches between a dialog on desktop and
+              a drawer on mobile. Try resizing your browser window to see the
+              behavior change.
             </p>
             <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
               <p className="text-sm">
                 <strong>Current breakpoint:</strong> {currentBreakpoint}
               </p>
               <p className="text-sm">
-                <strong>Modal type:</strong> {isLargeScreen ? 'Dialog' : 'Drawer'}
+                <strong>Modal type:</strong>{" "}
+                {isLargeScreen ? "Dialog" : "Drawer"}
               </p>
             </div>
           </div>
