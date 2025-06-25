@@ -31,6 +31,7 @@ import {
   BarChart3,
   FileText,
   ChevronRight,
+  Lock,
 } from "lucide-react";
 import ProfileOverview from "./ProfileOverview";
 import AccountSettings from "./AccountSettings";
@@ -69,7 +70,11 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
   }
 
   // Get the actual username from user metadata or email
-  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+  const displayName = user.user_metadata?.full_name || 
+                     user.user_metadata?.name || 
+                     user.user_metadata?.username ||
+                     user.email?.split('@')[0] || 
+                     'User';
 
   return (
     <>
@@ -159,7 +164,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
                         <span className="hidden sm:inline">Security</span>
                       </TabsTrigger>
                       <TabsTrigger value="privacy" className="flex items-center gap-2">
-                        <Settings className="h-4 w-4" />
+                        <Lock className="h-4 w-4" />
                         <span className="hidden sm:inline">Privacy</span>
                       </TabsTrigger>
                       <TabsTrigger value="notifications" className="flex items-center gap-2">
