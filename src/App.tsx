@@ -4,12 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SecureAuthProvider } from "@/contexts/SecureAuthContext";
+import { RBACProvider } from "@/hooks/useRBAC";
 import { ThemeProvider } from "@/contexts/EnhancedThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { LiveChatProvider, useLiveChat } from "@/contexts/LiveChatContext";
 import LiveChatModal from "@/components/help/LiveChatModal";
 import FloatingLiveChatButton from "@/components/help/FloatingLiveChatButton";
 import SessionStatusMonitor from "@/components/auth/SessionStatusMonitor";
+import { RBACDebugPanel } from "@/components/rbac/ProtectedComponent";
 import { initializeAutoSeeding } from "@/lib/auto-seed";
 import { useEffect } from "react";
 import Index from "./pages/Index";
@@ -131,6 +133,9 @@ const AppContent = () => {
 
       {/* Session Status Monitor */}
       <SessionStatusMonitor showStatusIndicator={true} position="top-right" />
+
+      {/* RBAC Debug Panel (development only) */}
+      <RBACDebugPanel />
     </div>
   );
 };
@@ -145,11 +150,13 @@ const App = () => (
       <ThemeProvider>
         <LanguageProvider>
           <SecureAuthProvider>
-            <LiveChatProvider>
-              <TooltipProvider>
-                <AppContent />
-              </TooltipProvider>
-            </LiveChatProvider>
+            <RBACProvider>
+              <LiveChatProvider>
+                <TooltipProvider>
+                  <AppContent />
+                </TooltipProvider>
+              </LiveChatProvider>
+            </RBACProvider>
           </SecureAuthProvider>
         </LanguageProvider>
       </ThemeProvider>
