@@ -1,12 +1,12 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { containerClasses } from "@/lib/responsive-utils";
 
 interface ResponsiveContainerProps {
   children: React.ReactNode;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl" | "full";
-  padding?: "none" | "sm" | "md" | "lg" | "xl";
-  as?: "div" | "section" | "main" | "article" | "aside";
+  padding?: "none" | "sm" | "md" | "lg";
 }
 
 const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
@@ -14,7 +14,6 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   className,
   size = "lg",
   padding = "md",
-  as: Component = "div",
 }) => {
   const sizeClasses = {
     sm: "max-w-2xl",
@@ -26,23 +25,22 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
 
   const paddingClasses = {
     none: "",
-    sm: "px-4 sm:px-6",
+    sm: "px-4",
     md: "px-4 sm:px-6 lg:px-8",
-    lg: "px-4 sm:px-6 lg:px-8 xl:px-12",
-    xl: "px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16",
+    lg: "px-6 sm:px-8 lg:px-12",
   };
 
   return (
-    <Component
+    <div
       className={cn(
-        "w-full mx-auto",
+        "container mx-auto",
         sizeClasses[size],
         paddingClasses[padding],
         className,
       )}
     >
       {children}
-    </Component>
+    </div>
   );
 };
 
