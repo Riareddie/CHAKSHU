@@ -3,7 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { SecureAuthProvider } from "@/contexts/SecureAuthContext";
+import SessionStatusMonitor from "@/components/auth/SessionStatusMonitor";
 import { ThemeProvider } from "@/contexts/EnhancedThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { LiveChatProvider, useLiveChat } from "@/contexts/LiveChatContext";
@@ -127,6 +128,9 @@ const AppContent = () => {
 
       {/* Floating Live Chat Button */}
       <FloatingLiveChatButton />
+
+      {/* Session Status Monitor */}
+      <SessionStatusMonitor showStatusIndicator={true} position="top-right" />
     </div>
   );
 };
@@ -140,13 +144,13 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider>
-          <AuthProvider>
+          <SecureAuthProvider>
             <LiveChatProvider>
               <TooltipProvider>
                 <AppContent />
               </TooltipProvider>
             </LiveChatProvider>
-          </AuthProvider>
+          </SecureAuthProvider>
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
