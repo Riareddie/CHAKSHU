@@ -76,69 +76,66 @@ export const ROLE_HIERARCHY: Record<UserRole, number> = {
   [UserRole.SUPER_ADMIN]: 4,
 };
 
+// Base permissions for each role (to avoid circular references)
+const CITIZEN_PERMISSIONS: Permission[] = [
+  Permission.REPORTS_VIEW_OWN,
+  Permission.REPORTS_CREATE,
+  Permission.REPORTS_UPDATE_OWN,
+  Permission.REPORTS_DELETE_OWN,
+  Permission.EVIDENCE_VIEW,
+  Permission.EVIDENCE_UPLOAD,
+  Permission.ANALYTICS_VIEW_BASIC,
+];
+
+const OFFICER_PERMISSIONS: Permission[] = [
+  ...CITIZEN_PERMISSIONS,
+  Permission.REPORTS_VIEW_ALL,
+  Permission.REPORTS_UPDATE_ALL,
+  Permission.REPORTS_ASSIGN,
+  Permission.REPORTS_RESOLVE,
+  Permission.DASHBOARD_OFFICER,
+  Permission.EVIDENCE_DELETE,
+  Permission.COMMUNITY_MODERATE,
+  Permission.NOTIFICATIONS_SEND,
+];
+
+const ADMIN_PERMISSIONS: Permission[] = [
+  ...OFFICER_PERMISSIONS,
+  Permission.REPORTS_DELETE_ALL,
+  Permission.REPORTS_ESCALATE,
+  Permission.REPORTS_EXPORT,
+  Permission.REPORTS_BULK_OPERATIONS,
+  Permission.USERS_VIEW_ALL,
+  Permission.USERS_CREATE,
+  Permission.USERS_UPDATE,
+  Permission.USERS_DELETE,
+  Permission.USERS_MANAGE_ROLES,
+  Permission.USERS_BULK_OPERATIONS,
+  Permission.ANALYTICS_VIEW_ADVANCED,
+  Permission.ANALYTICS_EXPORT,
+  Permission.DASHBOARD_ADMIN,
+  Permission.SYSTEM_AUDIT_LOGS,
+  Permission.DATA_EXPORT,
+  Permission.DATA_IMPORT,
+  Permission.EDUCATION_MANAGE,
+  Permission.NOTIFICATIONS_BROADCAST,
+];
+
+const SUPER_ADMIN_PERMISSIONS: Permission[] = [
+  ...ADMIN_PERMISSIONS,
+  Permission.USERS_IMPERSONATE,
+  Permission.SYSTEM_CONFIG,
+  Permission.SYSTEM_BACKUP,
+  Permission.SYSTEM_MAINTENANCE,
+  Permission.DATA_PURGE,
+];
+
 // Default permissions for each role
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  [UserRole.CITIZEN]: [
-    Permission.REPORTS_VIEW_OWN,
-    Permission.REPORTS_CREATE,
-    Permission.REPORTS_UPDATE_OWN,
-    Permission.REPORTS_DELETE_OWN,
-    Permission.EVIDENCE_VIEW,
-    Permission.EVIDENCE_UPLOAD,
-    Permission.ANALYTICS_VIEW_BASIC,
-  ],
-
-  [UserRole.OFFICER]: [
-    // All citizen permissions
-    ...ROLE_PERMISSIONS[UserRole.CITIZEN],
-
-    // Additional officer permissions
-    Permission.REPORTS_VIEW_ALL,
-    Permission.REPORTS_UPDATE_ALL,
-    Permission.REPORTS_ASSIGN,
-    Permission.REPORTS_RESOLVE,
-    Permission.DASHBOARD_OFFICER,
-    Permission.EVIDENCE_DELETE,
-    Permission.COMMUNITY_MODERATE,
-    Permission.NOTIFICATIONS_SEND,
-  ],
-
-  [UserRole.ADMIN]: [
-    // All officer permissions
-    ...ROLE_PERMISSIONS[UserRole.OFFICER],
-
-    // Additional admin permissions
-    Permission.REPORTS_DELETE_ALL,
-    Permission.REPORTS_ESCALATE,
-    Permission.REPORTS_EXPORT,
-    Permission.REPORTS_BULK_OPERATIONS,
-    Permission.USERS_VIEW_ALL,
-    Permission.USERS_CREATE,
-    Permission.USERS_UPDATE,
-    Permission.USERS_DELETE,
-    Permission.USERS_MANAGE_ROLES,
-    Permission.USERS_BULK_OPERATIONS,
-    Permission.ANALYTICS_VIEW_ADVANCED,
-    Permission.ANALYTICS_EXPORT,
-    Permission.DASHBOARD_ADMIN,
-    Permission.SYSTEM_AUDIT_LOGS,
-    Permission.DATA_EXPORT,
-    Permission.DATA_IMPORT,
-    Permission.EDUCATION_MANAGE,
-    Permission.NOTIFICATIONS_BROADCAST,
-  ],
-
-  [UserRole.SUPER_ADMIN]: [
-    // All admin permissions
-    ...ROLE_PERMISSIONS[UserRole.ADMIN],
-
-    // Additional super admin permissions
-    Permission.USERS_IMPERSONATE,
-    Permission.SYSTEM_CONFIG,
-    Permission.SYSTEM_BACKUP,
-    Permission.SYSTEM_MAINTENANCE,
-    Permission.DATA_PURGE,
-  ],
+  [UserRole.CITIZEN]: CITIZEN_PERMISSIONS,
+  [UserRole.OFFICER]: OFFICER_PERMISSIONS,
+  [UserRole.ADMIN]: ADMIN_PERMISSIONS,
+  [UserRole.SUPER_ADMIN]: SUPER_ADMIN_PERMISSIONS,
 };
 
 // User interface with RBAC fields
