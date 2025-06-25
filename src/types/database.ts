@@ -1,572 +1,871 @@
 /**
- * Database Models and Interfaces
- * Comprehensive TypeScript models for the government fraud reporting system
+ * Supabase Database Types for Government Fraud Reporting System
+ * Auto-generated from Supabase CLI and manually enhanced for government requirements
  */
 
-// Base entity interface with audit fields
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy?: string;
-  updatedBy?: string;
-  version: number;
-  isDeleted: boolean;
-  deletedAt?: Date;
-  deletedBy?: string;
-}
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
-// User related interfaces
-export interface User extends BaseEntity {
-  email: string;
-  passwordHash: string; // Encrypted
-  fullName: string;
-  phone?: string;
-  role: UserRole;
-  permissions: Permission[];
-  status: UserStatus;
-  emailVerified: boolean;
-  emailVerifiedAt?: Date;
-  lastLoginAt?: Date;
-  loginAttempts: number;
-  lockedUntil?: Date;
-  twoFactorEnabled: boolean;
-  twoFactorSecret?: string; // Encrypted
-  metadata: UserMetadata;
-  auditLog: AuditLogEntry[];
-}
-
-export interface UserMetadata {
-  department?: string;
-  employeeId?: string;
-  securityClearance?: string;
-  preferences: {
-    language: string;
-    timezone: string;
-    notifications: NotificationPreferences;
+// Database schema structure
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          phone: string | null;
+          address: Json | null;
+          aadhaar_number: string | null;
+          pan_number: string | null;
+          date_of_birth: string | null;
+          government_id: string | null;
+          department: string | null;
+          role: "citizen" | "officer" | "admin" | "super_admin";
+          is_verified: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          last_login: string | null;
+          login_count: number;
+          metadata: Json | null;
+        };
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          phone?: string | null;
+          address?: Json | null;
+          aadhaar_number?: string | null;
+          pan_number?: string | null;
+          date_of_birth?: string | null;
+          government_id?: string | null;
+          department?: string | null;
+          role?: "citizen" | "officer" | "admin" | "super_admin";
+          is_verified?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          last_login?: string | null;
+          login_count?: number;
+          metadata?: Json | null;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          phone?: string | null;
+          address?: Json | null;
+          aadhaar_number?: string | null;
+          pan_number?: string | null;
+          date_of_birth?: string | null;
+          government_id?: string | null;
+          department?: string | null;
+          role?: "citizen" | "officer" | "admin" | "super_admin";
+          is_verified?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          last_login?: string | null;
+          login_count?: number;
+          metadata?: Json | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey";
+            columns: ["id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fraud_reports: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string;
+          category:
+            | "cyber_fraud"
+            | "financial_fraud"
+            | "identity_theft"
+            | "phone_scam"
+            | "email_scam"
+            | "investment_fraud"
+            | "employment_fraud"
+            | "lottery_scam"
+            | "romance_scam"
+            | "other";
+          incident_date: string;
+          amount_involved: number | null;
+          location: Json;
+          suspicious_contacts: Json | null;
+          evidence_files: Json | null;
+          additional_info: string | null;
+          status:
+            | "pending"
+            | "under_investigation"
+            | "resolved"
+            | "closed"
+            | "rejected";
+          priority: "low" | "medium" | "high" | "critical";
+          assigned_to: string | null;
+          reference_number: string;
+          verification_status: "unverified" | "verified" | "requires_review";
+          is_sensitive: boolean;
+          consent_given: boolean;
+          truthfulness_verified: boolean;
+          created_at: string;
+          updated_at: string;
+          resolved_at: string | null;
+          internal_notes: string | null;
+          public_visibility: boolean;
+          tags: string[] | null;
+          related_reports: string[] | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description: string;
+          category:
+            | "cyber_fraud"
+            | "financial_fraud"
+            | "identity_theft"
+            | "phone_scam"
+            | "email_scam"
+            | "investment_fraud"
+            | "employment_fraud"
+            | "lottery_scam"
+            | "romance_scam"
+            | "other";
+          incident_date: string;
+          amount_involved?: number | null;
+          location: Json;
+          suspicious_contacts?: Json | null;
+          evidence_files?: Json | null;
+          additional_info?: string | null;
+          status?:
+            | "pending"
+            | "under_investigation"
+            | "resolved"
+            | "closed"
+            | "rejected";
+          priority?: "low" | "medium" | "high" | "critical";
+          assigned_to?: string | null;
+          reference_number: string;
+          verification_status?: "unverified" | "verified" | "requires_review";
+          is_sensitive?: boolean;
+          consent_given: boolean;
+          truthfulness_verified: boolean;
+          created_at?: string;
+          updated_at?: string;
+          resolved_at?: string | null;
+          internal_notes?: string | null;
+          public_visibility?: boolean;
+          tags?: string[] | null;
+          related_reports?: string[] | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string;
+          category?:
+            | "cyber_fraud"
+            | "financial_fraud"
+            | "identity_theft"
+            | "phone_scam"
+            | "email_scam"
+            | "investment_fraud"
+            | "employment_fraud"
+            | "lottery_scam"
+            | "romance_scam"
+            | "other";
+          incident_date?: string;
+          amount_involved?: number | null;
+          location?: Json;
+          suspicious_contacts?: Json | null;
+          evidence_files?: Json | null;
+          additional_info?: string | null;
+          status?:
+            | "pending"
+            | "under_investigation"
+            | "resolved"
+            | "closed"
+            | "rejected";
+          priority?: "low" | "medium" | "high" | "critical";
+          assigned_to?: string | null;
+          reference_number?: string;
+          verification_status?: "unverified" | "verified" | "requires_review";
+          is_sensitive?: boolean;
+          consent_given?: boolean;
+          truthfulness_verified?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          resolved_at?: string | null;
+          internal_notes?: string | null;
+          public_visibility?: boolean;
+          tags?: string[] | null;
+          related_reports?: string[] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fraud_reports_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fraud_reports_assigned_to_fkey";
+            columns: ["assigned_to"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      audit_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          action: string;
+          table_name: string | null;
+          record_id: string | null;
+          old_values: Json | null;
+          new_values: Json | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          session_id: string | null;
+          timestamp: string;
+          severity: "info" | "warning" | "error" | "critical";
+          module: string | null;
+          description: string | null;
+          metadata: Json | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          action: string;
+          table_name?: string | null;
+          record_id?: string | null;
+          old_values?: Json | null;
+          new_values?: Json | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          session_id?: string | null;
+          timestamp?: string;
+          severity?: "info" | "warning" | "error" | "critical";
+          module?: string | null;
+          description?: string | null;
+          metadata?: Json | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          action?: string;
+          table_name?: string | null;
+          record_id?: string | null;
+          old_values?: Json | null;
+          new_values?: Json | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          session_id?: string | null;
+          timestamp?: string;
+          severity?: "info" | "warning" | "error" | "critical";
+          module?: string | null;
+          description?: string | null;
+          metadata?: Json | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      report_comments: {
+        Row: {
+          id: string;
+          report_id: string;
+          user_id: string;
+          content: string;
+          is_internal: boolean;
+          is_system_generated: boolean;
+          visibility: "public" | "internal" | "restricted";
+          mentioned_users: string[] | null;
+          attachments: Json | null;
+          created_at: string;
+          updated_at: string;
+          edited_at: string | null;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          report_id: string;
+          user_id: string;
+          content: string;
+          is_internal?: boolean;
+          is_system_generated?: boolean;
+          visibility?: "public" | "internal" | "restricted";
+          mentioned_users?: string[] | null;
+          attachments?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+          edited_at?: string | null;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          report_id?: string;
+          user_id?: string;
+          content?: string;
+          is_internal?: boolean;
+          is_system_generated?: boolean;
+          visibility?: "public" | "internal" | "restricted";
+          mentioned_users?: string[] | null;
+          attachments?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+          edited_at?: string | null;
+          deleted_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "report_comments_report_id_fkey";
+            columns: ["report_id"];
+            referencedRelation: "fraud_reports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_comments_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          message: string;
+          type: "info" | "warning" | "error" | "success" | "system";
+          category:
+            | "report_update"
+            | "assignment"
+            | "system_alert"
+            | "security"
+            | "general";
+          related_record_id: string | null;
+          related_record_type: string | null;
+          is_read: boolean;
+          is_important: boolean;
+          action_url: string | null;
+          action_label: string | null;
+          expires_at: string | null;
+          metadata: Json | null;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          message: string;
+          type?: "info" | "warning" | "error" | "success" | "system";
+          category?:
+            | "report_update"
+            | "assignment"
+            | "system_alert"
+            | "security"
+            | "general";
+          related_record_id?: string | null;
+          related_record_type?: string | null;
+          is_read?: boolean;
+          is_important?: boolean;
+          action_url?: string | null;
+          action_label?: string | null;
+          expires_at?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          message?: string;
+          type?: "info" | "warning" | "error" | "success" | "system";
+          category?:
+            | "report_update"
+            | "assignment"
+            | "system_alert"
+            | "security"
+            | "general";
+          related_record_id?: string | null;
+          related_record_type?: string | null;
+          is_read?: boolean;
+          is_important?: boolean;
+          action_url?: string | null;
+          action_label?: string | null;
+          expires_at?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      file_attachments: {
+        Row: {
+          id: string;
+          name: string;
+          size: number;
+          mime_type: string;
+          storage_path: string;
+          upload_user_id: string;
+          related_record_id: string | null;
+          related_record_type: string | null;
+          is_sensitive: boolean;
+          is_evidence: boolean;
+          virus_scan_status: "pending" | "clean" | "infected" | "failed";
+          encryption_key_id: string | null;
+          access_level: "public" | "internal" | "restricted" | "classified";
+          retention_policy: string | null;
+          metadata: Json | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          size: number;
+          mime_type: string;
+          storage_path: string;
+          upload_user_id: string;
+          related_record_id?: string | null;
+          related_record_type?: string | null;
+          is_sensitive?: boolean;
+          is_evidence?: boolean;
+          virus_scan_status?: "pending" | "clean" | "infected" | "failed";
+          encryption_key_id?: string | null;
+          access_level?: "public" | "internal" | "restricted" | "classified";
+          retention_policy?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          size?: number;
+          mime_type?: string;
+          storage_path?: string;
+          upload_user_id?: string;
+          related_record_id?: string | null;
+          related_record_type?: string | null;
+          is_sensitive?: boolean;
+          is_evidence?: boolean;
+          virus_scan_status?: "pending" | "clean" | "infected" | "failed";
+          encryption_key_id?: string | null;
+          access_level?: "public" | "internal" | "restricted" | "classified";
+          retention_policy?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "file_attachments_upload_user_id_fkey";
+            columns: ["upload_user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          session_token: string;
+          device_fingerprint: string | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          location: Json | null;
+          is_active: boolean;
+          last_activity: string;
+          expires_at: string;
+          created_at: string;
+          terminated_at: string | null;
+          termination_reason: string | null;
+          security_flags: Json | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          session_token: string;
+          device_fingerprint?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          location?: Json | null;
+          is_active?: boolean;
+          last_activity?: string;
+          expires_at: string;
+          created_at?: string;
+          terminated_at?: string | null;
+          termination_reason?: string | null;
+          security_flags?: Json | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          session_token?: string;
+          device_fingerprint?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          location?: Json | null;
+          is_active?: boolean;
+          last_activity?: string;
+          expires_at?: string;
+          created_at?: string;
+          terminated_at?: string | null;
+          termination_reason?: string | null;
+          security_flags?: Json | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sessions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
+    Views: {
+      fraud_report_stats: {
+        Row: {
+          total_reports: number | null;
+          pending_reports: number | null;
+          resolved_reports: number | null;
+          total_amount: number | null;
+          avg_resolution_time: number | null;
+          category_breakdown: Json | null;
+          monthly_trends: Json | null;
+        };
+        Relationships: [];
+      };
+      user_activity_summary: {
+        Row: {
+          user_id: string | null;
+          total_reports: number | null;
+          last_activity: string | null;
+          total_sessions: number | null;
+          avg_session_duration: number | null;
+          security_incidents: number | null;
+        };
+        Relationships: [];
+      };
+    };
+    Functions: {
+      get_user_permissions: {
+        Args: {
+          user_id: string;
+        };
+        Returns: {
+          permissions: string[];
+        }[];
+      };
+      generate_reference_number: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+      encrypt_sensitive_data: {
+        Args: {
+          data: string;
+          classification: string;
+        };
+        Returns: string;
+      };
+      audit_data_change: {
+        Args: {
+          table_name: string;
+          record_id: string;
+          action: string;
+          old_values: Json;
+          new_values: Json;
+        };
+        Returns: void;
+      };
+      check_data_access_permission: {
+        Args: {
+          user_id: string;
+          resource_type: string;
+          resource_id: string;
+          action: string;
+        };
+        Returns: boolean;
+      };
+    };
+    Enums: {
+      user_role: "citizen" | "officer" | "admin" | "super_admin";
+      report_status:
+        | "pending"
+        | "under_investigation"
+        | "resolved"
+        | "closed"
+        | "rejected";
+      report_priority: "low" | "medium" | "high" | "critical";
+      fraud_category:
+        | "cyber_fraud"
+        | "financial_fraud"
+        | "identity_theft"
+        | "phone_scam"
+        | "email_scam"
+        | "investment_fraud"
+        | "employment_fraud"
+        | "lottery_scam"
+        | "romance_scam"
+        | "other";
+      notification_type: "info" | "warning" | "error" | "success" | "system";
+      access_level: "public" | "internal" | "restricted" | "classified";
+      audit_severity: "info" | "warning" | "error" | "critical";
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-  deviceFingerprints: string[];
 }
 
-export interface NotificationPreferences {
-  email: boolean;
-  sms: boolean;
-  push: boolean;
-  reportUpdates: boolean;
-  systemAlerts: boolean;
+// Helper types for easier usage
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
+        Database["public"]["Views"])
+    ? (Database["public"]["Tables"] &
+        Database["public"]["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof Database["public"]["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+    ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof Database["public"]["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+    ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  PublicEnumNameOrOptions extends
+    | keyof Database["public"]["Enums"]
+    | { schema: keyof Database },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
+    ? Database["public"]["Enums"][PublicEnumNameOrOptions]
+    : never;
+
+// Convenience type exports for common use cases
+export type Profile = Tables<"profiles">;
+export type FraudReport = Tables<"fraud_reports">;
+export type AuditLog = Tables<"audit_logs">;
+export type ReportComment = Tables<"report_comments">;
+export type Notification = Tables<"notifications">;
+export type FileAttachment = Tables<"file_attachments">;
+export type Session = Tables<"sessions">;
+
+export type ProfileInsert = TablesInsert<"profiles">;
+export type FraudReportInsert = TablesInsert<"fraud_reports">;
+export type AuditLogInsert = TablesInsert<"audit_logs">;
+export type ReportCommentInsert = TablesInsert<"report_comments">;
+export type NotificationInsert = TablesInsert<"notifications">;
+export type FileAttachmentInsert = TablesInsert<"file_attachments">;
+export type SessionInsert = TablesInsert<"sessions">;
+
+export type ProfileUpdate = TablesUpdate<"profiles">;
+export type FraudReportUpdate = TablesUpdate<"fraud_reports">;
+export type AuditLogUpdate = TablesUpdate<"audit_logs">;
+export type ReportCommentUpdate = TablesUpdate<"report_comments">;
+export type NotificationUpdate = TablesUpdate<"notifications">;
+export type FileAttachmentUpdate = TablesUpdate<"file_attachments">;
+export type SessionUpdate = TablesUpdate<"sessions">;
+
+// Enums for easier imports
+export type UserRole = Enums<"user_role">;
+export type ReportStatus = Enums<"report_status">;
+export type ReportPriority = Enums<"report_priority">;
+export type FraudCategory = Enums<"fraud_category">;
+export type NotificationType = Enums<"notification_type">;
+export type AccessLevel = Enums<"access_level">;
+export type AuditSeverity = Enums<"audit_severity">;
+
+// Custom types for complex queries and operations
+export interface FraudReportWithDetails extends FraudReport {
+  reporter?: Profile;
+  assigned_officer?: Profile;
+  comments?: ReportComment[];
+  attachments?: FileAttachment[];
 }
 
-// Fraud report interfaces
-export interface FraudReport extends BaseEntity {
-  reportNumber: string;
-  type: FraudType;
-  category: FraudCategory;
-  title: string;
-  description: string; // Encrypted
-  status: ReportStatus;
-  priority: Priority;
-  amount?: number; // Encrypted
-  currency: string;
-  incidentDate?: Date;
-  location?: Location;
-  isAnonymous: boolean;
-  reporterId?: string;
-  assignedTo?: string;
-  contactInfo: ContactInfo;
-  evidence: Evidence[];
-  timeline: TimelineEntry[];
-  resolution?: Resolution;
-  tags: string[];
-  sensitiveData: SensitiveData; // Encrypted fields
-  publicData: PublicData; // Non-sensitive, searchable data
+export interface UserWithProfile extends Profile {
+  total_reports?: number;
+  pending_reports?: number;
+  last_login_formatted?: string;
 }
 
-export interface ContactInfo {
-  suspiciousNumbers: string[];
-  suspiciousEmails: string[]; // Encrypted
-  suspiciousWebsites: string[];
-  bankDetails?: BankDetails; // Encrypted
-  otherDetails?: Record<string, any>;
+export interface NotificationWithMetadata extends Notification {
+  related_report?: FraudReport;
+  action_count?: number;
 }
 
-export interface BankDetails {
-  bankName: string;
-  accountNumber: string; // Encrypted
-  ifscCode: string;
-  transactionIds: string[];
-  branchName?: string;
-}
-
-export interface Evidence extends BaseEntity {
-  reportId: string;
-  type: EvidenceType;
-  filename: string;
-  originalFilename: string;
-  mimeType: string;
-  size: number;
-  checksum: string;
-  url: string; // Encrypted storage path
-  thumbnailUrl?: string;
-  description?: string;
-  metadata: EvidenceMetadata;
-  securityScan: SecurityScanResult;
-}
-
-export interface EvidenceMetadata {
-  dimensions?: { width: number; height: number };
-  duration?: number; // for videos
-  location?: Location;
-  device?: string;
-  software?: string;
-  exifData?: Record<string, any>; // Sanitized EXIF data
-}
-
-export interface SecurityScanResult {
-  scannedAt: Date;
-  isClean: boolean;
-  threats: string[];
-  confidence: number;
-  scanner: string;
-  version: string;
-}
-
-// Location interface
-export interface Location {
-  address?: string;
-  city?: string;
-  state?: string;
-  country: string;
-  pincode?: string;
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-    accuracy?: number;
-  };
-}
-
-// Timeline and resolution
-export interface TimelineEntry {
-  id: string;
-  timestamp: Date;
-  action: string;
-  description: string;
-  performedBy: string;
-  metadata?: Record<string, any>;
-}
-
-export interface Resolution {
-  resolvedAt: Date;
-  resolvedBy: string;
-  resolution: string;
-  outcome: ResolutionOutcome;
-  actionsTaken: string[];
-  followUpRequired: boolean;
-  followUpDate?: Date;
-  notes?: string;
-}
-
-// Session management
-export interface UserSession extends BaseEntity {
-  userId: string;
-  sessionToken: string; // Hashed
-  refreshToken: string; // Hashed
-  ipAddress: string;
-  userAgent: string;
-  deviceFingerprint: string;
-  expiresAt: Date;
-  isActive: boolean;
-  lastActivity: Date;
-  location?: Location;
-  metadata: SessionMetadata;
-}
-
-export interface SessionMetadata {
-  loginMethod: "password" | "otp" | "biometric";
-  riskScore: number;
-  isSecure: boolean;
-  browserInfo: {
-    name: string;
-    version: string;
-    os: string;
-  };
-}
-
-// Audit logging
-export interface AuditLogEntry extends BaseEntity {
-  userId?: string;
-  sessionId?: string;
-  action: AuditAction;
-  resource: string;
-  resourceId?: string;
-  details: AuditDetails;
-  ipAddress: string;
-  userAgent: string;
-  timestamp: Date;
-  severity: AuditSeverity;
-  category: AuditCategory;
-  tags: string[];
-}
-
-export interface AuditDetails {
-  oldValues?: Record<string, any>;
-  newValues?: Record<string, any>;
-  metadata?: Record<string, any>;
-  riskScore?: number;
-  successful: boolean;
-  errorMessage?: string;
-}
-
-// Search and analytics
-export interface SearchQuery extends BaseEntity {
-  userId?: string;
-  query: string;
-  filters: SearchFilters;
-  results: SearchResult[];
-  executionTime: number;
-  cached: boolean;
-}
-
-export interface SearchFilters {
-  types?: FraudType[];
-  categories?: FraudCategory[];
-  status?: ReportStatus[];
-  dateRange?: {
-    start: Date;
-    end: Date;
-  };
-  location?: Location;
-  amountRange?: {
-    min: number;
-    max: number;
-  };
-  tags?: string[];
-}
-
-export interface SearchResult {
-  id: string;
-  type: string;
-  title: string;
-  snippet: string;
-  relevanceScore: number;
-  matchedFields: string[];
-}
-
-// Notification system
-export interface Notification extends BaseEntity {
-  userId: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  data?: Record<string, any>;
-  read: boolean;
-  readAt?: Date;
-  priority: Priority;
-  expiresAt?: Date;
-  channels: NotificationChannel[];
-  deliveryStatus: DeliveryStatus[];
-}
-
-export interface DeliveryStatus {
-  channel: NotificationChannel;
-  status: "pending" | "sent" | "delivered" | "failed";
-  sentAt?: Date;
-  deliveredAt?: Date;
-  errorMessage?: string;
-  attempts: number;
-}
-
-// Configuration and settings
-export interface SystemConfiguration extends BaseEntity {
-  key: string;
-  value: any;
-  type: "string" | "number" | "boolean" | "json";
-  description: string;
-  category: string;
-  isEncrypted: boolean;
-  validationSchema?: string;
-  environment: "development" | "staging" | "production";
-}
-
-// Data encryption mappings
-export interface EncryptionMapping {
-  tableName: string;
-  columnName: string;
-  encryptionType: "aes256" | "rsa" | "hash";
-  keyId: string;
-  isSearchable: boolean;
-  indexType?: "hash" | "partial";
-}
-
-// Database performance monitoring
-export interface QueryMetrics {
-  id: string;
-  query: string;
-  executionTime: number;
-  timestamp: Date;
-  userId?: string;
-  endpoint: string;
-  parameters?: Record<string, any>;
-  resultCount: number;
-  cacheHit: boolean;
-  error?: string;
-}
-
-// Enums
-export enum UserRole {
-  CITIZEN = "citizen",
-  MODERATOR = "moderator",
-  INVESTIGATOR = "investigator",
-  ADMIN = "admin",
-  SUPER_ADMIN = "super_admin",
-  SYSTEM = "system",
-}
-
-export enum Permission {
-  READ_REPORTS = "read_reports",
-  CREATE_REPORTS = "create_reports",
-  UPDATE_REPORTS = "update_reports",
-  DELETE_REPORTS = "delete_reports",
-  MANAGE_USERS = "manage_users",
-  VIEW_ANALYTICS = "view_analytics",
-  SYSTEM_CONFIG = "system_config",
-  AUDIT_LOGS = "audit_logs",
-  DATA_EXPORT = "data_export",
-  BULK_OPERATIONS = "bulk_operations",
-}
-
-export enum UserStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  SUSPENDED = "suspended",
-  LOCKED = "locked",
-  PENDING_VERIFICATION = "pending_verification",
-}
-
-export enum FraudType {
-  FINANCIAL = "financial",
-  CYBER = "cyber",
-  IDENTITY_THEFT = "identity_theft",
-  TELECOM = "telecom",
-  BANKING = "banking",
-  INVESTMENT = "investment",
-  OTHER = "other",
-}
-
-export enum FraudCategory {
-  PHISHING = "phishing",
-  FRAUD_CALL = "fraud_call",
-  FAKE_WEBSITE = "fake_website",
-  UNAUTHORIZED_TRANSACTION = "unauthorized_transaction",
-  SIM_CLONING = "sim_cloning",
-  PONZI_SCHEME = "ponzi_scheme",
-  LOTTERY_SCAM = "lottery_scam",
-  JOB_FRAUD = "job_fraud",
-  MATRIMONIAL_FRAUD = "matrimonial_fraud",
-  OTHER = "other",
-}
-
-export enum ReportStatus {
-  DRAFT = "draft",
-  SUBMITTED = "submitted",
-  UNDER_REVIEW = "under_review",
-  INVESTIGATING = "investigating",
-  ADDITIONAL_INFO_REQUIRED = "additional_info_required",
-  RESOLVED = "resolved",
-  CLOSED = "closed",
-  ESCALATED = "escalated",
-  REJECTED = "rejected",
-}
-
-export enum Priority {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  CRITICAL = "critical",
-  URGENT = "urgent",
-}
-
-export enum EvidenceType {
-  SCREENSHOT = "screenshot",
-  DOCUMENT = "document",
-  AUDIO = "audio",
-  VIDEO = "video",
-  TRANSACTION_RECORD = "transaction_record",
-  COMMUNICATION_LOG = "communication_log",
-  OTHER = "other",
-}
-
-export enum ResolutionOutcome {
-  FRAUD_CONFIRMED = "fraud_confirmed",
-  NOT_FRAUD = "not_fraud",
-  INSUFFICIENT_EVIDENCE = "insufficient_evidence",
-  REFERRED_TO_AUTHORITY = "referred_to_authority",
-  DUPLICATE_REPORT = "duplicate_report",
-  SPAM = "spam",
-}
-
-export enum AuditAction {
-  CREATE = "create",
-  READ = "read",
-  UPDATE = "update",
-  DELETE = "delete",
-  LOGIN = "login",
-  LOGOUT = "logout",
-  ACCESS_DENIED = "access_denied",
-  PASSWORD_CHANGE = "password_change",
-  EXPORT = "export",
-  BULK_OPERATION = "bulk_operation",
-}
-
-export enum AuditSeverity {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  CRITICAL = "critical",
-}
-
-export enum AuditCategory {
-  AUTHENTICATION = "authentication",
-  AUTHORIZATION = "authorization",
-  DATA_ACCESS = "data_access",
-  DATA_MODIFICATION = "data_modification",
-  SYSTEM_EVENT = "system_event",
-  SECURITY_EVENT = "security_event",
-}
-
-export enum NotificationType {
-  REPORT_UPDATE = "report_update",
-  SYSTEM_ALERT = "system_alert",
-  SECURITY_ALERT = "security_alert",
-  REMINDER = "reminder",
-  ANNOUNCEMENT = "announcement",
-}
-
-export enum NotificationChannel {
-  EMAIL = "email",
-  SMS = "sms",
-  PUSH = "push",
-  IN_APP = "in_app",
-}
-
-// Sensitive and public data separation
-export interface SensitiveData {
-  personalDetails?: {
-    fullName?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
-  };
-  financialDetails?: {
-    accountNumbers?: string[];
-    cardNumbers?: string[];
-    transactionIds?: string[];
-    amounts?: number[];
-  };
-  identificationDetails?: {
-    aadhaarNumber?: string;
-    panNumber?: string;
-    passportNumber?: string;
-    drivingLicense?: string;
-  };
-}
-
-export interface PublicData {
-  generalCategory: string;
-  locationState?: string;
-  amountRange?: string; // e.g., "1000-5000"
-  fraudMethod?: string;
-  targetDemographic?: string;
-  timeOfIncident?: string; // generalized time
-}
-
-// API request/response types
-export interface PaginationParams {
-  page: number;
-  limit: number;
-  offset?: number;
-}
-
-export interface SortParams {
-  field: string;
-  order: "asc" | "desc";
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
+// API Response types
+export interface ApiResponse<T = any> {
+  data: T | null;
+  error: string | null;
   message?: string;
-  errors?: ValidationError[];
-  meta?: {
-    pagination?: {
-      page: number;
-      limit: number;
-      total: number;
-      pages: number;
-    };
-    timing?: {
-      executionTime: number;
-      cached: boolean;
-    };
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
   };
 }
 
-export interface ValidationError {
-  field: string;
+export interface DatabaseError {
   message: string;
-  code: string;
-  value?: any;
+  details?: string;
+  hint?: string;
+  code?: string;
 }
 
-export interface BulkOperationResult<T> {
-  successful: T[];
-  failed: Array<{
-    item: T;
-    error: string;
-    code: string;
-  }>;
-  totalProcessed: number;
-  successCount: number;
-  failureCount: number;
+// Connection and health check types
+export interface ConnectionStatus {
+  isConnected: boolean;
+  latency?: number;
+  lastChecked: Date;
+  error?: string;
+  retryCount: number;
+  maxRetries: number;
 }
 
-// Transaction context
-export interface TransactionContext {
-  userId?: string;
-  sessionId?: string;
-  action: string;
-  metadata?: Record<string, any>;
-  auditRequired: boolean;
-}
-
-// Backup and recovery
-export interface BackupConfiguration {
-  id: string;
-  name: string;
-  schedule: string; // Cron expression
-  type: "full" | "incremental" | "differential";
-  retention: number; // Days
-  encryption: boolean;
-  compression: boolean;
-  tables: string[];
-  destination: string;
-  isActive: boolean;
-  lastRun?: Date;
-  nextRun?: Date;
-}
-
-export interface BackupRecord extends BaseEntity {
-  configurationId: string;
-  type: "full" | "incremental" | "differential";
-  startTime: Date;
-  endTime?: Date;
-  status: "running" | "completed" | "failed";
-  size: number;
-  location: string;
-  checksum: string;
-  errorMessage?: string;
-  metadata: {
-    recordCount: number;
-    tables: string[];
-    compressionRatio?: number;
+export interface HealthCheckResult {
+  database: {
+    status: "healthy" | "degraded" | "unhealthy";
+    responseTime: number;
+    error?: string;
   };
+  auth: {
+    status: "healthy" | "degraded" | "unhealthy";
+    error?: string;
+  };
+  storage: {
+    status: "healthy" | "degraded" | "unhealthy";
+    error?: string;
+  };
+  realtime: {
+    status: "healthy" | "degraded" | "unhealthy";
+    error?: string;
+  };
+  overall: "healthy" | "degraded" | "unhealthy";
+  timestamp: Date;
+}
+
+// Government specific types
+export interface GovernmentIdValidation {
+  aadhaar?: {
+    isValid: boolean;
+    format: string;
+    masked: string;
+  };
+  pan?: {
+    isValid: boolean;
+    format: string;
+    masked: string;
+  };
+}
+
+export interface SecurityClassification {
+  level: AccessLevel;
+  clearanceRequired: string[];
+  encryptionRequired: boolean;
+  auditRequired: boolean;
+  retentionPeriod: string;
+}
+
+export interface ComplianceMetadata {
+  dataClassification: SecurityClassification;
+  lawEnforcementAccess: boolean;
+  citizenDataRights: string[];
+  retentionPolicy: string;
+  encryptionStatus: "encrypted" | "not_encrypted" | "pending";
+  lastAuditDate?: Date;
+  complianceOfficer?: string;
 }
