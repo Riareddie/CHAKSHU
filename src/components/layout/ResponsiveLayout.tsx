@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 // Breakpoint values matching Tailwind CSS defaults
 export const breakpoints = {
   sm: '640px',
-  md: '768px', 
+  md: '768px',
   lg: '1024px',
   xl: '1280px',
   '2xl': '1536px',
@@ -69,7 +69,7 @@ export interface ResponsiveColumnProps {
 // Utility function to generate responsive classes
 const generateResponsiveClasses = <T>(
   value: T | ResponsiveValue<T>,
-  classGenerator: (val: T, breakpoint?: Breakpoint) => string
+  classGenerator: (val: T) => string
 ): string => {
   if (typeof value === 'object' && value !== null && 'default' in value) {
     const responsiveValue = value as ResponsiveValue<T>;
@@ -82,7 +82,7 @@ const generateResponsiveClasses = <T>(
       responsiveValue['2xl'] && `2xl:${classGenerator(responsiveValue['2xl'])}`,
     ].filter(Boolean).join(' ');
   }
-  
+
   return classGenerator(value as T);
 };
 
@@ -98,7 +98,7 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
     cols,
     (val) => `grid-cols-${val}`
   );
-  
+
   const gapClasses = generateResponsiveClasses(
     gap,
     (val) => `gap-${val}`
@@ -283,7 +283,7 @@ export const ResponsiveCardLayout: React.FC<ResponsiveCardLayoutProps> = ({
   );
 
   return (
-    <div 
+    <div
       className={cn(
         'grid auto-fit-grid',
         gapClasses,
@@ -343,7 +343,7 @@ export const ResponsiveDashboardLayout: React.FC<ResponsiveDashboardLayoutProps>
                 onClick={() => setSidebarOpen(false)}
               />
             )}
-            
+
             {/* Sidebar */}
             <div className={cn(
               'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform lg:translate-x-0',
