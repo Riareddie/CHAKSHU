@@ -1,0 +1,170 @@
+/* Responsive Enhancement CSS */
+@layer components {
+  /* Container utilities with better responsive padding */
+  .container-responsive {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12;
+  }
+
+  .container-tight {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl;
+  }
+
+  /* Enhanced mobile navigation */
+  .mobile-nav-item {
+    @apply flex items-center w-full py-3 px-4 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 font-medium;
+  }
+
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  .touch-button {
+    @apply min-h-[44px] px-4 py-2 sm:px-6 sm:py-3 touch-manipulation;
+  }
+
+  /* Responsive text sizing */
+  .text-hero {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight;
+  }
+
+  .text-heading {
+    @apply text-2xl sm:text-3xl md:text-4xl font-bold leading-tight;
+  }
+
+  .text-subheading {
+    @apply text-xl sm:text-2xl md:text-3xl font-semibold leading-relaxed;
+  }
+
+  .text-body-large {
+    @apply text-base sm:text-lg md:text-xl leading-relaxed;
+  }
+
+  /* Responsive grid layouts */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6;
+  }
+
+  .grid-auto-fit {
+    @apply grid gap-4 sm:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Responsive spacing */
+  .section-padding {
+    @apply py-12 sm:py-16 lg:py-20 xl:py-24;
+  }
+
+  .section-padding-small {
+    @apply py-8 sm:py-12 lg:py-16;
+  }
+
+  .card-padding {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  /* Responsive flex layouts */
+  .flex-responsive-stack {
+    @apply flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-center;
+  }
+
+  .flex-responsive-center {
+    @apply flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6;
+  }
+
+  /* Mobile-first navigation improvements */
+  .nav-desktop {
+    @apply hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-4;
+  }
+
+  .nav-mobile {
+    @apply lg:hidden;
+  }
+
+  /* Safe area handling for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Scroll improvements */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus improvements for accessibility */
+  .focus-ring-enhanced {
+    @apply focus:outline-none focus:ring-2 focus:ring-india-saffron focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800;
+  }
+
+  /* Image responsiveness */
+  .img-responsive {
+    @apply w-full h-auto object-cover;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+}
+
+/* Responsive utilities for specific breakpoints */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Ensure buttons are touch-friendly on mobile */
+  button,
+  .btn,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  /* Tablet-specific optimizations */
+  .nav-items {
+    gap: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop optimizations */
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .container {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}

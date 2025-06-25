@@ -23,6 +23,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import LanguageSelector from "@/components/language/LanguageSelector";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import AccessibilityUtils from "@/components/accessibility/AccessibilityUtils";
+import UserProfileDropdown from "@/components/profile/UserProfileDropdown";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -68,7 +69,6 @@ const Header = () => {
     { to: "/mobile-app", label: t.header.mobileApp },
     { to: "/ai-features", label: t.header.aiFeatures },
     { to: "/guidelines", label: t.header.guidelines },
-    { to: "/profile", label: "Profile" },
     { to: "/help", label: t.header.help },
   ];
 
@@ -357,77 +357,7 @@ const Header = () => {
 
               {/* User Authentication */}
               {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="relative h-8 w-8 lg:h-10 lg:w-10 rounded-full focus-visible-ring"
-                      aria-label={t.accessibility.userMenu}
-                    >
-                      <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
-                        <AvatarFallback className="bg-india-saffron text-white text-sm lg:text-base">
-                          {getUserInitials(user.user_metadata?.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-56"
-                    align={isRTL ? "start" : "end"}
-                    role="menu"
-                    aria-label={t.accessibility.userMenu}
-                  >
-                    <div
-                      className={`flex flex-col space-y-1 p-2 ${isRTL ? "text-right" : ""}`}
-                    >
-                      <p className="text-sm font-medium leading-none">
-                        {user.user_metadata?.full_name || t.header.profile}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/dashboard"
-                        className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
-                        role="menuitem"
-                      >
-                        <User
-                          className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`}
-                          aria-hidden="true"
-                        />
-                        <span>{t.header.trackStatus}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/reports-management"
-                        className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
-                        role="menuitem"
-                      >
-                        <User
-                          className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`}
-                          aria-hidden="true"
-                        />
-                        <span>{t.header.myReports}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleSignOut}
-                      className={`flex items-center text-red-600 focus:text-red-600 ${isRTL ? "flex-row-reverse" : ""}`}
-                      role="menuitem"
-                    >
-                      <LogOut
-                        className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`}
-                        aria-hidden="true"
-                      />
-                      <span>{t.header.logout}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <UserProfileDropdown />
               ) : (
                 <div
                   className={`flex items-center space-x-2 ${isRTL ? "space-x-reverse" : ""}`}
