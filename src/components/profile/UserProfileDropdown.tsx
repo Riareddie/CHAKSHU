@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -22,6 +20,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "react-router-dom";
 import {
   User,
   Settings,
@@ -29,10 +28,9 @@ import {
   Bell,
   Activity,
   LogOut,
-  Edit,
-  Lock,
-  ChevronRight,
   BarChart3,
+  FileText,
+  ChevronRight,
 } from "lucide-react";
 import ProfileOverview from "./ProfileOverview";
 import AccountSettings from "./AccountSettings";
@@ -66,67 +64,12 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
     await signOut();
   };
 
-  const profileMenuItems = [
-    {
-      id: "overview",
-      label: "Profile Overview",
-      icon: User,
-      description: "View your profile information and stats",
-    },
-    {
-      id: "account",
-      label: "Account Settings",
-      icon: Settings,
-      description: "Manage your personal and professional details",
-    },
-    {
-      id: "security",
-      label: "Security Settings",
-      icon: Shield,
-      description: "Password, 2FA, and session management",
-    },
-    {
-      id: "privacy",
-      label: "Privacy Settings",
-      icon: Lock,
-      description: "Control your data and visibility settings",
-    },
-    {
-      id: "notifications",
-      label: "Notification Preferences",
-      icon: Bell,
-      description: "Manage notification delivery and timing",
-    },
-    {
-      id: "activity",
-      label: "Activity History",
-      icon: Activity,
-      description: "View your account activity timeline",
-    },
-  ];
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "overview":
-        return <ProfileOverview />;
-      case "account":
-        return <AccountSettings />;
-      case "security":
-        return <SecuritySettings />;
-      case "privacy":
-        return <PrivacySettings />;
-      case "notifications":
-        return <NotificationPreferences />;
-      case "activity":
-        return <ActivityHistory />;
-      default:
-        return <ProfileOverview />;
-    }
-  };
-
   if (!user) {
     return null;
   }
+
+  // Get the actual username from user metadata or email
+  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
 
   return (
     <>
@@ -139,7 +82,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
           >
             <Avatar className="h-8 w-8 lg:h-10 lg:w-10">
               <AvatarFallback className="bg-india-saffron text-white text-sm lg:text-base">
-                {getUserInitials(user.user_metadata?.full_name)}
+                {getUserInitials(displayName)}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -155,12 +98,12 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
             <div className="flex items-center space-x-3">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className="bg-india-saffron text-white">
-                  {getUserInitials(user.user_metadata?.full_name)}
+                  {getUserInitials(displayName)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium leading-none truncate">
-                  {user.user_metadata?.full_name || t.header?.profile || "Profile"}
+                  {displayName}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
                   {user.email}
@@ -171,7 +114,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
           
           <DropdownMenuSeparator />
 
-          {/* Quick Actions */}
+          {/* Profile Section */}
           <div className="p-2">
             <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
               <DialogTrigger asChild>
@@ -181,7 +124,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
                 >
                   <div className={`flex items-center ${isRTL ? "flex-row-reverse space-x-reverse" : ""}`}>
                     <User className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-                    <span>View Full Profile</span>
+                    <span>View Profile</span>
                   </div>
                   <ChevronRight className="h-4 w-4" />
                 </DropdownMenuItem>
@@ -216,7 +159,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
                         <span className="hidden sm:inline">Security</span>
                       </TabsTrigger>
                       <TabsTrigger value="privacy" className="flex items-center gap-2">
-                        <Lock className="h-4 w-4" />
+                        <Settings className="h-4 w-4" />
                         <span className="hidden sm:inline">Privacy</span>
                       </TabsTrigger>
                       <TabsTrigger value="notifications" className="flex items-center gap-2">
@@ -253,43 +196,31 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
                 </div>
               </DialogContent>
             </Dialog>
-
-            {/* Quick Profile Sections */}
-            {profileMenuItems.slice(0, 3).map((item) => (
-              <DropdownMenuItem
-                key={item.id}
-                className={`flex items-center justify-between cursor-pointer ${isRTL ? "flex-row-reverse" : ""}`}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsProfileDialogOpen(true);
-                }}
-              >
-                <div className={`flex items-center ${isRTL ? "flex-row-reverse space-x-reverse" : ""}`}>
-                  <item.icon className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-                  <span className="text-sm">{item.label}</span>
-                </div>
-                <ChevronRight className="h-4 w-4" />
-              </DropdownMenuItem>
-            ))}
           </div>
 
           <DropdownMenuSeparator />
 
           {/* Quick Links */}
-          <DropdownMenuItem
-            onClick={() => window.open("/dashboard", "_blank")}
-            className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
-          >
-            <BarChart3 className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-            <span>{t.header?.trackStatus || "Dashboard"}</span>
+          <DropdownMenuItem asChild>
+            <Link
+              to="/dashboard"
+              className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
+              role="menuitem"
+            >
+              <BarChart3 className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+              <span>{t.header?.trackStatus || "Track Status"}</span>
+            </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem
-            onClick={() => window.open("/reports-management", "_blank")}
-            className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
-          >
-            <User className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-            <span>{t.header?.myReports || "My Reports"}</span>
+          <DropdownMenuItem asChild>
+            <Link
+              to="/reports-management"
+              className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
+              role="menuitem"
+            >
+              <FileText className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+              <span>{t.header?.myReports || "My Reports"}</span>
+            </Link>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
@@ -298,6 +229,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ className }) 
           <DropdownMenuItem
             onClick={handleSignOut}
             className={`flex items-center text-red-600 focus:text-red-600 ${isRTL ? "flex-row-reverse" : ""}`}
+            role="menuitem"
           >
             <LogOut className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
             <span>{t.header?.logout || "Sign Out"}</span>
