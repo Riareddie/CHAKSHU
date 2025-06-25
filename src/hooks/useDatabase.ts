@@ -6,17 +6,28 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   reportsService,
+  userProfilesService,
   notificationsService,
   communityService,
   evidenceService,
+  supportTicketsService,
+  educationService,
+  faqService,
   realtimeService,
   type ServiceResponse,
   type Report,
   type ReportInsert,
   type ReportUpdate,
+  type UserProfile,
+  type UserProfileInsert,
+  type UserProfileUpdate,
   type Notification,
   type CommunityInteraction,
   type ReportEvidence,
+  type SupportTicket,
+  type SupportTicketInsert,
+  type EducationArticle,
+  type FAQ,
 } from "@/services/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -39,12 +50,14 @@ function useGenericDatabase<T>(
     autoRefresh?: boolean;
     refreshInterval?: number;
     showToasts?: boolean;
+    enabled?: boolean;
   } = {},
 ) {
   const {
     autoRefresh = false,
     refreshInterval = 30000,
     showToasts = false,
+    enabled = true,
   } = options;
 
   const [state, setState] = useState<HookState<T>>({
@@ -59,6 +72,8 @@ function useGenericDatabase<T>(
 
   const fetchData = useCallback(
     async (showLoading = true) => {
+      if (!enabled) return;
+
       // Cancel previous request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -116,17 +131,19 @@ function useGenericDatabase<T>(
         }
       }
     },
-    [fetcher, showToasts],
+    [fetcher, showToasts, enabled],
   );
 
   // Initial load
   useEffect(() => {
-    fetchData();
-  }, dependencies);
+    if (enabled) {
+      fetchData();
+    }
+  }, [...dependencies, enabled]);
 
   // Auto refresh
   useEffect(() => {
-    if (autoRefresh && refreshInterval > 0) {
+    if (enabled && autoRefresh && refreshInterval > 0) {
       intervalRef.current = setInterval(() => {
         fetchData(false);
       }, refreshInterval);
@@ -137,7 +154,7 @@ function useGenericDatabase<T>(
         }
       };
     }
-  }, [autoRefresh, refreshInterval, fetchData]);
+  }, [autoRefresh, refreshInterval, fetchData, enabled]);
 
   // Cleanup
   useEffect(() => {
@@ -202,10 +219,17 @@ export function useReports(
 /**
  * Hook for fetching a single report
  */
-export function useReport(id: string, options: { showToasts?: boolean } = {}) {
+export function useReport(
+  id: string,
+  options: { showToasts?: boolean; enabled?: boolean } = {},
+) {
   const fetcher = useCallback(() => reportsService.getById(id), [id]);
 
-  return useGenericDatabase(fetcher, [id], { autoRefresh: false, ...options });
+  return useGenericDatabase(fetcher, [id], {
+    autoRefresh: false,
+    enabled: !!id,
+    ...options,
+  });
 }
 
 /**
@@ -228,6 +252,7 @@ export function useUserReports(
   return useGenericDatabase(fetcher, [actualUserId], {
     autoRefresh: true,
     refreshInterval: 60000,
+    enabled: !!actualUserId,
     ...options,
   });
 }
@@ -241,6 +266,30 @@ export function useReportStats(options: { autoRefresh?: boolean } = {}) {
   return useGenericDatabase(fetcher, [], {
     autoRefresh: true,
     refreshInterval: 60000,
+    ...options,
+  });
+}
+
+/**
+ * Hook for user profile
+ */
+export function useUserProfile(
+  userId?: string,
+  options: { autoRefresh?: boolean } = {},
+) {
+  const { user } = useAuth();
+  const actualUserId = userId || user?.id;
+
+  const fetcher = useCallback(() => {
+    if (!actualUserId) {
+      return Promise.resolve({ data: null, error: null, success: true });
+    }
+    return userProfilesService.getProfile(actualUserId);
+  }, [actualUserId]);
+
+  return useGenericDatabase(fetcher, [actualUserId], {
+    autoRefresh: false,
+    enabled: !!actualUserId,
     ...options,
   });
 }
@@ -265,6 +314,7 @@ export function useNotifications(
   const result = useGenericDatabase(fetcher, [actualUserId], {
     autoRefresh: true,
     refreshInterval: 30000,
+    enabled: !!actualUserId,
     ...options,
   });
 
@@ -287,6 +337,27 @@ export function useNotifications(
 }
 
 /**
+ * Hook for unread notifications count
+ */
+export function useUnreadNotificationsCount(userId?: string) {
+  const { user } = useAuth();
+  const actualUserId = userId || user?.id;
+
+  const fetcher = useCallback(() => {
+    if (!actualUserId) {
+      return Promise.resolve({ data: 0, error: null, success: true });
+    }
+    return notificationsService.getUnreadCount(actualUserId);
+  }, [actualUserId]);
+
+  return useGenericDatabase(fetcher, [actualUserId], {
+    autoRefresh: true,
+    refreshInterval: 10000,
+    enabled: !!actualUserId,
+  });
+}
+
+/**
  * Hook for community interactions
  */
 export function useCommunityInteractions(
@@ -298,11 +369,29 @@ export function useCommunityInteractions(
     [reportId],
   );
 
-  return useGenericDatabase(fetcher, [reportId], {
+  const result = useGenericDatabase(fetcher, [reportId], {
     autoRefresh: true,
     refreshInterval: 30000,
+    enabled: !!reportId,
     ...options,
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!reportId) return;
+
+    const unsubscribe = realtimeService.subscribeToCommunityInteractions(
+      reportId,
+      (payload) => {
+        console.log("Community interaction update:", payload);
+        result.refresh();
+      },
+    );
+
+    return unsubscribe;
+  }, [reportId, result.refresh]);
+
+  return result;
 }
 
 /**
@@ -319,8 +408,88 @@ export function useReportEvidence(
 
   return useGenericDatabase(fetcher, [reportId], {
     autoRefresh: false,
+    enabled: !!reportId,
     ...options,
   });
+}
+
+/**
+ * Hook for support tickets
+ */
+export function useSupportTickets(
+  userId?: string,
+  options: { autoRefresh?: boolean } = {},
+) {
+  const { user } = useAuth();
+  const actualUserId = userId || user?.id;
+
+  const fetcher = useCallback(() => {
+    if (!actualUserId) {
+      return Promise.resolve({ data: [], error: null, success: true });
+    }
+    return supportTicketsService.getUserTickets(actualUserId);
+  }, [actualUserId]);
+
+  return useGenericDatabase(fetcher, [actualUserId], {
+    autoRefresh: true,
+    refreshInterval: 60000,
+    enabled: !!actualUserId,
+    ...options,
+  });
+}
+
+/**
+ * Hook for education articles
+ */
+export function useEducationArticles(category?: string, limit: number = 20) {
+  const fetcher = useCallback(
+    () => educationService.getPublishedArticles(category, limit),
+    [category, limit],
+  );
+
+  return useGenericDatabase(fetcher, [category, limit], { autoRefresh: false });
+}
+
+/**
+ * Hook for featured articles
+ */
+export function useFeaturedArticles() {
+  const fetcher = useCallback(() => educationService.getFeaturedArticles(), []);
+
+  return useGenericDatabase(fetcher, [], { autoRefresh: false });
+}
+
+/**
+ * Hook for single article
+ */
+export function useEducationArticle(
+  id: string,
+  options: { enabled?: boolean } = {},
+) {
+  const fetcher = useCallback(() => educationService.getArticleById(id), [id]);
+
+  return useGenericDatabase(fetcher, [id], {
+    autoRefresh: false,
+    enabled: !!id && options.enabled !== false,
+  });
+}
+
+/**
+ * Hook for FAQs
+ */
+export function useFAQs(category?: string) {
+  const fetcher = useCallback(() => faqService.getAll(category), [category]);
+
+  return useGenericDatabase(fetcher, [category], { autoRefresh: false });
+}
+
+/**
+ * Hook for featured FAQs
+ */
+export function useFeaturedFAQs() {
+  const fetcher = useCallback(() => faqService.getFeatured(), []);
+
+  return useGenericDatabase(fetcher, [], { autoRefresh: false });
 }
 
 /**
@@ -426,6 +595,52 @@ export function useUpdateReport() {
   );
 
   return { updateReport, loading };
+}
+
+/**
+ * Hook for updating user profile
+ */
+export function useUpdateProfile() {
+  const [loading, setLoading] = useState(false);
+
+  const updateProfile = useCallback(
+    async (profile: UserProfileInsert | UserProfileUpdate) => {
+      setLoading(true);
+
+      try {
+        const result = await userProfilesService.upsertProfile(profile);
+
+        if (result.success) {
+          toast({
+            title: "Profile Updated",
+            description: "Your profile has been updated successfully",
+          });
+        } else {
+          toast({
+            title: "Failed to Update Profile",
+            description: result.error || "Unknown error occurred",
+            variant: "destructive",
+          });
+        }
+
+        return result;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  return { updateProfile, loading };
 }
 
 /**
@@ -557,6 +772,65 @@ export function useFileUpload() {
     uploading,
     progress,
   };
+}
+
+/**
+ * Hook for creating support tickets
+ */
+export function useCreateSupportTicket() {
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
+  const createTicket = useCallback(
+    async (ticketData: Omit<SupportTicketInsert, "user_id">) => {
+      if (!user?.id) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to create a support ticket",
+          variant: "destructive",
+        });
+        return { success: false, error: "Not authenticated" };
+      }
+
+      setLoading(true);
+
+      try {
+        const result = await supportTicketsService.create({
+          ...ticketData,
+          user_id: user.id,
+        });
+
+        if (result.success) {
+          toast({
+            title: "Support Ticket Created",
+            description: "Your support ticket has been submitted successfully",
+          });
+        } else {
+          toast({
+            title: "Failed to Create Ticket",
+            description: result.error || "Unknown error occurred",
+            variant: "destructive",
+          });
+        }
+
+        return result;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.id],
+  );
+
+  return { createTicket, loading };
 }
 
 /**
