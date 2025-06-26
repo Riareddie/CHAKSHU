@@ -126,6 +126,11 @@ const FraudReportingForm = () => {
     if (submitError) {
       setSubmitError(null);
     }
+
+    // Clear database error flag when user makes changes
+    if (hasDatabaseError) {
+      setHasDatabaseError(false);
+    }
   };
 
   // Validate current step before allowing progression
