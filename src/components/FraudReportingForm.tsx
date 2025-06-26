@@ -656,7 +656,7 @@ const FraudReportingForm = () => {
       {/* Database Configuration Error */}
       {hasDatabaseError && (
         <div className="mb-6">
-          <DatabaseStatus showDetails={true} />
+          <QuickFixAlert />
         </div>
       )}
 
