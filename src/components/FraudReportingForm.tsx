@@ -356,34 +356,43 @@ const FraudReportingForm = () => {
         return;
       }
 
-      // Parse location into city and state
-      const locationParts = formData.location
-        ?.split(",")
-        .map((part) => part.trim());
-      const city = locationParts?.[0] || null;
-      const state = locationParts?.[1] || locationParts?.[0] || null;
+      // Map fraud type to report type
+      const getReportType = (fraudType: string): string => {
+        const typeMap: Record<string, string> = {
+          "Call Fraud": "call",
+          "SMS Fraud": "sms",
+          "WhatsApp Scam": "whatsapp",
+          "Email Spam": "email",
+        };
+        return typeMap[fraudType] || "call";
+      };
 
-      // Generate title from fraud type and category
-      const title =
-        formData.title || `${formData.fraudType} - ${formData.category}`;
+      // Map category to fraud_category
+      const getFraudCategory = (category: string): string => {
+        const categoryMap: Record<string, string> = {
+          "Financial Fraud": "financial_fraud",
+          "Investment Scam": "investment_fraud",
+          "Lottery Scam": "lottery_scam",
+          "Job Fraud": "job_fraud",
+          Impersonation: "impersonation",
+        };
+        return categoryMap[category] || "other";
+      };
 
       // Map form data to database schema
       const reportData: ReportInsert = {
         user_id: user.id,
-        title: title,
+        report_type: getReportType(formData.fraudType),
+        fraudulent_number: formData.phoneNumber,
+        incident_date:
+          formData.dateTime?.toISOString().split("T")[0] ||
+          new Date().toISOString().split("T")[0],
+        incident_time: formData.dateTime?.toTimeString().split(" ")[0] || null,
         description: formData.messageContent,
-        fraud_type: formData.fraudType
-          .toLowerCase()
-          .replace(/\s+/g, "_") as any,
-        amount_involved: formData.amount || null,
-        incident_date: formData.dateTime?.toISOString() || null,
-        city: city,
-        state: state,
-        contact_info: {
-          phone_number: formData.phoneNumber,
-          additional_details: formData.additionalDetails,
-        },
+        fraud_category: getFraudCategory(formData.category),
+        evidence_urls: [],
         status: "pending",
+        priority: "medium",
       };
 
       // Submit report to database
