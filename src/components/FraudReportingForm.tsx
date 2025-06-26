@@ -501,6 +501,9 @@ const FraudReportingForm = () => {
       localStorage.removeItem("fraud-report-draft");
       setCurrentStep(1);
     } catch (error) {
+      // Log the full error for debugging
+      console.error("Report submission error:", error);
+
       // Handle database configuration errors specifically
       if (error instanceof Error && error.message === "database_config_error") {
         setHasDatabaseError(true);
@@ -511,13 +514,48 @@ const FraudReportingForm = () => {
           variant: "destructive",
         });
       } else {
-        setSubmitError(
-          "An unexpected error occurred while submitting your report. Please try again.",
-        );
+        // Provide more specific error message based on the error
+        let errorMessage =
+          "An unexpected error occurred while submitting your report.";
+        let errorDetails = "Please try again or contact support.";
+
+        if (error instanceof Error) {
+          console.error("Error details:", error.message, error.stack);
+
+          // Check for specific error types
+          if (
+            error.message.includes("infinite recursion") ||
+            error.message.includes("Database configuration")
+          ) {
+            setHasDatabaseError(true);
+            errorMessage = "Database configuration error detected.";
+            errorDetails =
+              "Please see the instructions below to fix this issue.";
+          } else if (
+            error.message.includes("Network") ||
+            error.message.includes("fetch")
+          ) {
+            errorMessage = "Network connection error.";
+            errorDetails =
+              "Please check your internet connection and try again.";
+          } else if (
+            error.message.includes("permission") ||
+            error.message.includes("unauthorized")
+          ) {
+            errorMessage = "Permission denied.";
+            errorDetails = "Please make sure you're logged in and try again.";
+          } else if (error.message.includes("validation")) {
+            errorMessage = "Form validation error.";
+            errorDetails = "Please check your form data and try again.";
+          } else {
+            errorDetails = `Error: ${error.message}`;
+          }
+        }
+
+        setSubmitError(`${errorMessage} ${errorDetails}`);
         toast({
           title: "Submission Failed",
-          description:
-            "Failed to submit report. Please try again or contact support.",
+          description: errorMessage,
           variant: "destructive",
         });
       }
