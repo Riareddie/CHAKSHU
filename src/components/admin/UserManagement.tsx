@@ -38,37 +38,55 @@ import {
   Eye,
   RefreshCw,
   AlertCircle,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
-import { useAdminUsers } from "@/hooks/useAdminData";
+import { useAdmin } from "@/contexts/AdminContext";
 import { useToast } from "@/hooks/use-toast";
 
 const UserManagement = () => {
-  const { users, loading, error, refetch } = useAdminUsers();
+  const {
+    users,
+    usersLoading: loading,
+    usersError: error,
+    fetchUsers: refetch,
+    updateUserStatus,
+    userFilters,
+    setUserFilters,
+    selectedUser,
+    setSelectedUser,
+  } = useAdmin();
   const { toast } = useToast();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userDialog, setUserDialog] = useState<{
     open: boolean;
     action: "view" | "edit" | "suspend" | "activate" | null;
     userId: string;
   }>({ open: false, action: null, userId: "" });
+  const [actionReason, setActionReason] = useState("");
 
   // Filter and search users
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
-        searchTerm === "" ||
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        !userFilters.search ||
+        user.full_name
+          ?.toLowerCase()
+          .includes(userFilters.search.toLowerCase()) ||
+        user.email.toLowerCase().includes(userFilters.search.toLowerCase());
 
       const matchesRole =
-        roleFilter === "all" || (roleFilter === "user" && true); // All our users are regular users for now
+        !userFilters.role ||
+        userFilters.role === "all" ||
+        user.role === userFilters.role;
+      const matchesStatus =
+        !userFilters.status ||
+        userFilters.status === "all" ||
+        user.status === userFilters.status;
 
-      return matchesSearch && matchesRole;
+      return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [users, searchTerm, roleFilter]);
+  }, [users, userFilters]);
 
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
@@ -106,14 +124,21 @@ const UserManagement = () => {
   };
 
   const handleActionConfirm = async () => {
-    // In a real implementation, this would make API calls
-    toast({
-      title: "Action Completed",
-      description: `User ${userDialog.action} action has been executed.`,
-    });
+    if (!userDialog.action || !userDialog.userId) return;
 
-    setUserDialog({ open: false, action: null, userId: "" });
-    setSelectedUser(null);
+    try {
+      if (userDialog.action === "suspend") {
+        await updateUserStatus(userDialog.userId, "suspended", actionReason);
+      } else if (userDialog.action === "activate") {
+        await updateUserStatus(userDialog.userId, "active", actionReason);
+      }
+
+      setUserDialog({ open: false, action: null, userId: "" });
+      setSelectedUser(null);
+      setActionReason("");
+    } catch (error) {
+      console.error("Action failed:", error);
+    }
   };
 
   if (loading) {
@@ -201,18 +226,49 @@ const UserManagement = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Search users by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={userFilters.search || ""}
+                  onChange={(e) =>
+                    setUserFilters({ ...userFilters, search: e.target.value })
+                  }
                   className="pl-10"
                 />
               </div>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <Select
+                value={userFilters.role || "all"}
+                onValueChange={(value) =>
+                  setUserFilters({
+                    ...userFilters,
+                    role: value === "all" ? undefined : value,
+                  })
+                }
+              >
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Filter by role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="user">Regular Users</SelectItem>
+                  <SelectItem value="admin">Administrators</SelectItem>
+                  <SelectItem value="moderator">Moderators</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={userFilters.status || "all"}
+                onValueChange={(value) =>
+                  setUserFilters({
+                    ...userFilters,
+                    status: value === "all" ? undefined : value,
+                  })
+                }
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -237,8 +293,9 @@ const UserManagement = () => {
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Reports</TableHead>
+                    <TableHead>Amount Reported</TableHead>
+                    <TableHead>Risk Score</TableHead>
                     <TableHead>Last Seen</TableHead>
-                    <TableHead>Join Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -259,7 +316,10 @@ const UserManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getRoleColor("user")}>User</Badge>
+                        <Badge className={getRoleColor(user.role)}>
+                          {user.role.charAt(0).toUpperCase() +
+                            user.role.slice(1)}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(user.status)}>
@@ -268,13 +328,31 @@ const UserManagement = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>{user.reports_count}</TableCell>
+                      <TableCell className="font-medium">
+                        ₹{user.total_amount_reported?.toLocaleString() || "0"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {user.risk_score > 5 ? (
+                            <TrendingUp className="h-4 w-4 text-red-500" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-green-500" />
+                          )}
+                          <span
+                            className={
+                              user.risk_score > 5
+                                ? "text-red-600"
+                                : "text-green-600"
+                            }
+                          >
+                            {user.risk_score.toFixed(1)}
+                          </span>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {user.last_seen
                           ? new Date(user.last_seen).toLocaleDateString()
                           : "Never"}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

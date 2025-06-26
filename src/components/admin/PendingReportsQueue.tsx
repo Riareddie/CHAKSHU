@@ -36,18 +36,26 @@ import {
   Clock,
   RefreshCw,
   MessageSquare,
+  FileText,
 } from "lucide-react";
-import { useAdminReports } from "@/hooks/useAdminData";
+import { useAdmin } from "@/contexts/AdminContext";
 import { useToast } from "@/hooks/use-toast";
 
 const PendingReportsQueue = () => {
-  const { reports, loading, error, refetch, updateReportStatus } =
-    useAdminReports();
+  const {
+    reports,
+    reportsLoading: loading,
+    reportsError: error,
+    fetchReports: refetch,
+    updateReportStatus,
+    reportFilters,
+    setReportFilters,
+    selectedReport,
+    setSelectedReport,
+  } = useAdmin();
   const { toast } = useToast();
 
   const [sortBy, setSortBy] = useState("priority");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [selectedReport, setSelectedReport] = useState<any>(null);
   const [actionDialog, setActionDialog] = useState<{
     open: boolean;
     action: "approve" | "reject" | "view" | null;
@@ -59,12 +67,14 @@ const PendingReportsQueue = () => {
   // Filter and sort reports
   const filteredAndSortedReports = useMemo(() => {
     let filtered = reports.filter((report) => {
-      if (filterStatus === "all") return true;
-      if (filterStatus === "pending") return report.status === "pending";
-      if (filterStatus === "under-review")
+      if (reportFilters.status === "all" || !reportFilters.status) return true;
+      if (reportFilters.status === "pending")
+        return report.status === "pending";
+      if (reportFilters.status === "under-review")
         return report.status === "under_review";
-      if (filterStatus === "escalated") return report.priority === "critical";
-      return true;
+      if (reportFilters.status === "escalated")
+        return report.priority === "critical";
+      return report.status === reportFilters.status;
     });
 
     return filtered.sort((a, b) => {
@@ -87,7 +97,7 @@ const PendingReportsQueue = () => {
           return 0;
       }
     });
-  }, [reports, filterStatus, sortBy]);
+  }, [reports, reportFilters.status, sortBy]);
 
   const getPriorityColor = (priority?: string) => {
     switch (priority?.toLowerCase()) {
@@ -170,10 +180,16 @@ const PendingReportsQueue = () => {
     try {
       const newStatus =
         actionDialog.action === "approve" ? "resolved" : "rejected";
+      const authorityAction =
+        actionDialog.action === "approve"
+          ? "case_closed"
+          : "no_action_required";
+
       await updateReportStatus(
         actionDialog.reportId,
         newStatus,
         comments || undefined,
+        authorityAction,
       );
 
       setActionDialog({ open: false, action: null, reportId: "" });
@@ -265,14 +281,24 @@ const PendingReportsQueue = () => {
                   <SelectItem value="type">Type</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <Select
+                value={reportFilters.status || "all"}
+                onValueChange={(value) =>
+                  setReportFilters({
+                    ...reportFilters,
+                    status: value === "all" ? undefined : value,
+                  })
+                }
+              >
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Filter status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="under-review">Under Review</SelectItem>
+                  <SelectItem value="under_review">Under Review</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
                   <SelectItem value="escalated">High Priority</SelectItem>
                 </SelectContent>
               </Select>
@@ -302,6 +328,7 @@ const PendingReportsQueue = () => {
                   <TableHead>Submitted By</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Evidence</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -325,6 +352,14 @@ const PendingReportsQueue = () => {
                     </TableCell>
                     <TableCell className="font-semibold">
                       {formatCurrency(report.amount_involved)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <FileText className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">
+                          {report.evidence_count || 0}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

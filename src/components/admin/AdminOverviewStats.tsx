@@ -8,13 +8,23 @@ import {
   Clock,
   Shield,
   RefreshCw,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAdminStats } from "@/hooks/useAdminData";
+import { Badge } from "@/components/ui/badge";
+import { useAdmin } from "@/contexts/AdminContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminOverviewStats = () => {
-  const { stats, loading, error, refetch } = useAdminStats();
+  const {
+    stats,
+    statsLoading: loading,
+    statsError: error,
+    fetchStats: refetch,
+    realtimeConnected,
+    lastUpdated,
+  } = useAdmin();
 
   const formatNumber = (num: number): string => {
     if (num >= 10000000) return `₹${(num / 10000000).toFixed(1)}Cr`;
@@ -128,7 +138,30 @@ const AdminOverviewStats = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Overview Statistics</h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-semibold">Overview Statistics</h3>
+          <div className="flex items-center gap-2">
+            {realtimeConnected ? (
+              <Badge
+                variant="outline"
+                className="text-green-600 border-green-200"
+              >
+                <Wifi className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-red-600 border-red-200">
+                <WifiOff className="h-3 w-3 mr-1" />
+                Offline
+              </Badge>
+            )}
+            {lastUpdated && (
+              <span className="text-xs text-gray-500">
+                Updated {new Date(lastUpdated).toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+        </div>
         <Button
           variant="outline"
           size="sm"
