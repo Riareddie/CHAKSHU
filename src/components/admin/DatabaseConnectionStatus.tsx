@@ -35,7 +35,7 @@ const DatabaseConnectionStatus = () => {
     try {
       // Test basic connectivity
       const { data, error } = await supabase
-        .from("reports")
+        .from("fraud_reports")
         .select("id")
         .limit(1);
 
@@ -49,9 +49,9 @@ const DatabaseConnectionStatus = () => {
       } else {
         // Test other tables
         const tablesToCheck = [
-          "reports",
+          "fraud_reports",
+          "otp_verification",
           "notifications",
-          "user_analytics_preferences",
         ];
         const availableTables = [];
 
