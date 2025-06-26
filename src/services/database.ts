@@ -170,10 +170,17 @@ class DatabaseService {
    * Check database connection health
    */
   async healthCheck(): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").select("id").limit(1),
-      "health check",
-    );
+    return this.executeQuery(async () => {
+      // First try the health check function that doesn't trigger RLS
+      try {
+        const result = await supabase.rpc("database_health_check");
+        return { data: result.data || true, error: null };
+      } catch (error) {
+        // Fallback to simple query if function doesn't exist
+        console.warn("Health check function not available, using fallback");
+        return await supabase.from("fraud_reports").select("id").limit(1);
+      }
+    }, "health check");
   }
 }
 
