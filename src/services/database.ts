@@ -888,7 +888,6 @@ class CommunityCommentsService extends DatabaseService {
     });
   }
 }
-  }
 
   /**
    * Mark notification as read
