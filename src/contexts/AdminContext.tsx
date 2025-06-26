@@ -12,12 +12,30 @@ import React, {
 } from "react";
 import { toast } from "@/hooks/use-toast";
 import {
-  adminService,
-  type AdminStats,
-  type ReportWithDetails,
-  type AdminUser,
-  type SystemHealth,
-} from "@/services/adminService";
+  simplifiedAdminService,
+  type SimpleAdminStats as AdminStats,
+  type SimpleReportData as ReportWithDetails,
+  type ServiceResponse,
+} from "@/services/simplifiedAdminService";
+
+// Temporary type for compatibility
+type AdminUser = {
+  id: string;
+  email: string;
+  full_name: string;
+  created_at: string;
+  reports_count: number;
+  total_amount_reported: number;
+  status: string;
+  role: string;
+};
+
+type SystemHealth = {
+  database: { status: string; responseTime: number; connections: number };
+  realtime: { status: string; channels: number; latency: number };
+  storage: { status: string; usage: number; capacity: number };
+  lastCheck: string;
+};
 import type { Tables } from "@/integrations/supabase/types";
 
 type Report = Tables<"reports">;
@@ -281,7 +299,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const fetchStats = useCallback(async () => {
     dispatch({ type: "SET_STATS_LOADING", payload: true });
     try {
-      const response = await adminService.getAdminStats();
+      const response = await simplifiedAdminService.getStats();
       if (response.success && response.data) {
         dispatch({ type: "SET_STATS_SUCCESS", payload: response.data });
       } else {
@@ -301,13 +319,14 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const fetchReports = useCallback(async () => {
     dispatch({ type: "SET_REPORTS_LOADING", payload: true });
     try {
-      const response = await adminService.getReportsForReview(
-        state.reportFilters,
-        state.reportsPage,
+      const response = await simplifiedAdminService.getReports(
         state.reportsLimit,
       );
       if (response.success && response.data) {
-        dispatch({ type: "SET_REPORTS_SUCCESS", payload: response.data });
+        dispatch({
+          type: "SET_REPORTS_SUCCESS",
+          payload: { reports: response.data, total: response.data.length },
+        });
       } else {
         dispatch({
           type: "SET_REPORTS_ERROR",
@@ -320,19 +339,18 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         payload: "Failed to fetch reports",
       });
     }
-  }, [state.reportFilters, state.reportsPage, state.reportsLimit]);
+  }, [state.reportsLimit]);
 
   // Fetch users for management
   const fetchUsers = useCallback(async () => {
     dispatch({ type: "SET_USERS_LOADING", payload: true });
     try {
-      const response = await adminService.getUsersForManagement(
-        state.userFilters,
-        state.usersPage,
-        state.usersLimit,
-      );
+      const response = await simplifiedAdminService.getUsers();
       if (response.success && response.data) {
-        dispatch({ type: "SET_USERS_SUCCESS", payload: response.data });
+        dispatch({
+          type: "SET_USERS_SUCCESS",
+          payload: { users: response.data, total: response.data.length },
+        });
       } else {
         dispatch({
           type: "SET_USERS_ERROR",
@@ -342,7 +360,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       dispatch({ type: "SET_USERS_ERROR", payload: "Failed to fetch users" });
     }
-  }, [state.userFilters, state.usersPage, state.usersLimit]);
+  }, []);
 
   // Fetch system health
   const fetchSystemHealth = useCallback(async () => {
@@ -374,11 +392,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       authorityAction?: string,
     ) => {
       try {
-        const response = await adminService.updateReportStatus(
+        const response = await simplifiedAdminService.updateReportStatus(
           reportId,
           status,
           comments,
-          authorityAction,
         );
         if (response.success && response.data) {
           // Find the updated report and update it in state
