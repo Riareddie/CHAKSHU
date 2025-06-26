@@ -42,23 +42,19 @@ interface MockReport {
 
 // Convert database report to mock report format for compatibility
 const convertToMockFormat = (report: DatabaseReport): MockReport => {
-  const contactInfo = (report.contact_info as any) || {};
-  const location =
-    [report.city, report.state].filter(Boolean).join(", ") || "Unknown";
-
   return {
     id: report.id,
     date: new Date(report.created_at).toLocaleDateString(),
-    type: report.fraud_type
+    type: report.report_type
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
     description: report.description,
     status: report.status
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
-    impact: "Medium", // Default impact
-    amount: report.amount_involved || undefined,
-    location: location,
+    impact: report.priority.replace(/\b\w/g, (l) => l.toUpperCase()), // Use priority as impact
+    amount: undefined, // Not stored in fraud_reports schema
+    location: "Not specified", // Not stored in this schema
   };
 };
 
