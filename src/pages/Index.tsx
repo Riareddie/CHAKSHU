@@ -121,6 +121,22 @@ const Index = () => {
       {!showReportForm ? (
         <>
           <Hero />
+
+          {/* Temporary Connection Status Display */}
+          <div className="py-8 bg-gray-50 dark:bg-gray-800">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  System Status
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Current database and authentication connection status
+                </p>
+              </div>
+              <SupabaseConnectionStatus />
+            </div>
+          </div>
+
           <AuthenticatedContent onReportFraud={() => setShowReportForm(true)} />
           <StatsCounter />
           <FeatureCards />
