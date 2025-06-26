@@ -49,23 +49,27 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 scroll-smooth">
       <Header />
 
       <AuthGuard message="Please sign in to access your profile and manage your account settings.">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+          {/* Profile Header */}
+          <div className="mb-6 sm:mb-8 lg:mb-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
               User Profile
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl">
               Manage your account settings, security preferences, and view your
-              activity
+              activity. Keep your information up to date for the best
+              experience.
             </p>
           </div>
 
           {/* Profile Stats Overview */}
-          <ProfileStats />
+          <div className="mb-6 sm:mb-8 lg:mb-12">
+            <ProfileStats />
+          </div>
 
           {/* Main Profile Content */}
           <Tabs
@@ -73,59 +77,85 @@ const UserProfile = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:flex">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Overview</span>
-              </TabsTrigger>
-              <TabsTrigger value="account" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Account</span>
-              </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Security</span>
-              </TabsTrigger>
-              <TabsTrigger value="privacy" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                <span className="hidden sm:inline">Privacy</span>
-              </TabsTrigger>
-              <TabsTrigger
+            {/* Enhanced Responsive Tabs Navigation */}
+            <div className="overflow-x-auto mb-6 sm:mb-8">
+              <TabsList className="flex w-full min-w-max md:w-auto md:grid md:grid-cols-6 lg:flex lg:w-auto bg-white border border-gray-200 rounded-lg p-1">
+                <TabsTrigger
+                  value="overview"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                >
+                  <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Overview</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="account"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                >
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Account</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="security"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                >
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Security</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="privacy"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                >
+                  <Lock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Privacy</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="notifications"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                >
+                  <Bell className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">
+                    Notifications
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="activity"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                >
+                  <Activity className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">Activity</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Tab Content with enhanced spacing */}
+            <div className="transition-all duration-300 ease-in-out">
+              <TabsContent value="overview" className="mt-0 focus:outline-none">
+                <ProfileOverview />
+              </TabsContent>
+
+              <TabsContent value="account" className="mt-0 focus:outline-none">
+                <AccountSettings />
+              </TabsContent>
+
+              <TabsContent value="security" className="mt-0 focus:outline-none">
+                <SecuritySettings />
+              </TabsContent>
+
+              <TabsContent value="privacy" className="mt-0 focus:outline-none">
+                <PrivacySettings />
+              </TabsContent>
+
+              <TabsContent
                 value="notifications"
-                className="flex items-center gap-2"
+                className="mt-0 focus:outline-none"
               >
-                <Bell className="h-4 w-4" />
-                <span className="hidden sm:inline">Notifications</span>
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">Activity</span>
-              </TabsTrigger>
-            </TabsList>
+                <NotificationPreferences />
+              </TabsContent>
 
-            <TabsContent value="overview" className="mt-6">
-              <ProfileOverview />
-            </TabsContent>
-
-            <TabsContent value="account" className="mt-6">
-              <AccountSettings />
-            </TabsContent>
-
-            <TabsContent value="security" className="mt-6">
-              <SecuritySettings />
-            </TabsContent>
-
-            <TabsContent value="privacy" className="mt-6">
-              <PrivacySettings />
-            </TabsContent>
-
-            <TabsContent value="notifications" className="mt-6">
-              <NotificationPreferences />
-            </TabsContent>
-
-            <TabsContent value="activity" className="mt-6">
-              <ActivityHistory />
-            </TabsContent>
+              <TabsContent value="activity" className="mt-0 focus:outline-none">
+                <ActivityHistory />
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
       </AuthGuard>
