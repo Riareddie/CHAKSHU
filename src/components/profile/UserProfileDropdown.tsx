@@ -96,6 +96,8 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
               {getUserInitials(displayName)}
             </AvatarFallback>
           </Avatar>
+          {/* Status indicator for new notifications or updates */}
+          <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full"></span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
