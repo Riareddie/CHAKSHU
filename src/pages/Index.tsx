@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import FraudReportingForm from "@/components/FraudReportingForm";
 import NavigationButtons from "@/components/common/NavigationButtons";
 import GuestFeatures from "@/components/common/GuestFeatures";
+import DemoLogin from "@/components/common/DemoLogin";
 import { Button } from "@/components/ui/button";
 import { Plus, Shield, User, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,7 +129,12 @@ const Index = () => {
           <AuthenticatedContent onReportFraud={() => setShowReportForm(true)} />
           <StatsCounter />
           <FeatureCards />
-          {!user && <GuestFeatures />}
+          {!user && (
+            <>
+              <GuestFeatures />
+              <DemoLogin />
+            </>
+          )}
           <TrustBadges />
           <Footer />
         </div>
