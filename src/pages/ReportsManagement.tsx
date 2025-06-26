@@ -108,8 +108,10 @@ const ReportsManagement = () => {
       setLoading(true);
       try {
         const result = await reportsService.getUserReports(user.id);
-        if (result.success && result.data) {
-          const displayReports = result.data.map(convertToDisplayFormat);
+        if (result.success && result.data && result.data.reports) {
+          const displayReports = result.data.reports.map(
+            convertToDisplayFormat,
+          );
           setReports(displayReports);
         } else {
           console.error("Failed to load reports:", result.error);
