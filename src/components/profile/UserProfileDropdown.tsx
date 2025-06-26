@@ -64,7 +64,11 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   if (!user) {
