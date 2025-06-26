@@ -308,8 +308,8 @@ const SearchResultModal: React.FC<SearchResultModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw]">
-        <DialogHeader className="space-y-4">
+      <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw] flex flex-col">
+        <DialogHeader className="space-y-4 flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {getTypeIcon(result.type)}

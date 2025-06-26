@@ -138,13 +138,13 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                   className={`flex items-center ${isRTL ? "flex-row-reverse space-x-reverse" : ""}`}
                 >
                   <User className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-                  <span>View Profile</span>
+                  </Tabs>
                 </div>
-                <ChevronRight className="h-4 w-4" />
-              </DropdownMenuItem>
+              </ScrollArea>
+            </DialogContent>
             </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[90vh] p-0">
-              <DialogHeader className="p-6 pb-0">
+            <DialogContent className="max-w-6xl max-h-[90vh] p-0 flex flex-col">
+              <DialogHeader className="p-6 pb-0 flex-shrink-0">
                 <DialogTitle className="text-2xl font-bold">
                   User Profile
                 </DialogTitle>
@@ -154,7 +154,8 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="p-6 pt-4">
+              <ScrollArea className="flex-1 px-6 pb-6">
+                <div className="pt-4">
                 {/* Profile Stats Overview */}
                 <div className="mb-6">
                   <ProfileStats />
