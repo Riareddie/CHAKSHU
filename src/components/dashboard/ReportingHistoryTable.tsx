@@ -63,9 +63,12 @@ const convertToMockFormat = (report: DatabaseReport): MockReport => {
 };
 
 const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
+  const { user } = useAuth();
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [allReports, setAllReports] = useState<MockReport[]>([]);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof MockReport;
     direction: "asc" | "desc";
@@ -75,7 +78,34 @@ const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
   });
   const { toast } = useToast();
 
-  const allReports = mockReportsData;
+  // Load reports from database
+  useEffect(() => {
+    const loadReports = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const result = await reportsService.getUserReports(user.id);
+        if (result.success && result.data) {
+          const mockReports = result.data.map(convertToMockFormat);
+          setAllReports(mockReports);
+        } else {
+          console.error("Failed to load reports:", result.error);
+          setAllReports([]);
+        }
+      } catch (error) {
+        console.error("Error loading reports:", error);
+        setAllReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReports();
+  }, [user]);
 
   // Apply filters to the reports
   const filteredReports = allReports.filter((report) => {
