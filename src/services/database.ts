@@ -101,10 +101,40 @@ class DatabaseService {
       const response = await queryFn();
 
       if (response.error) {
-        console.error(`Database ${operation} error:`, response.error);
+        // Enhanced error logging with more details
+        console.error(`Database ${operation} error:`, {
+          error: response.error,
+          message: response.error.message,
+          details: response.error.details,
+          hint: response.error.hint,
+          code: response.error.code,
+        });
+
+        // Provide user-friendly error messages for common issues
+        let userFriendlyMessage =
+          response.error.message || `Failed to ${operation}`;
+
+        if (response.error.message?.includes("infinite recursion")) {
+          userFriendlyMessage =
+            "Database configuration issue detected. Please contact support.";
+        } else if (
+          response.error.message?.includes("JWT") ||
+          response.error.message?.includes("auth")
+        ) {
+          userFriendlyMessage = "Authentication required. Please log in again.";
+        } else if (
+          response.error.message?.includes("permission denied") ||
+          response.error.message?.includes("policy")
+        ) {
+          userFriendlyMessage =
+            "Access denied. You don't have permission to perform this action.";
+        } else if (response.error.message?.includes("connection")) {
+          userFriendlyMessage = "Database connection error. Please try again.";
+        }
+
         return {
           data: null,
-          error: response.error.message || `Failed to ${operation}`,
+          error: userFriendlyMessage,
           success: false,
         };
       }
@@ -120,7 +150,13 @@ class DatabaseService {
         error instanceof Error
           ? error.message
           : `Unknown error during ${operation}`;
-      console.error(`Database ${operation} exception:`, error);
+
+      console.error(`Database ${operation} exception:`, {
+        error,
+        message,
+        operation,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
 
       return {
         data: null,
