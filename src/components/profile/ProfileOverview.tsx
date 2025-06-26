@@ -1,32 +1,6 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import {
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
-  Shield,
-  Star,
-  Trophy,
-  Target,
-  TrendingUp,
-  Edit,
-  Camera,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  FileText,
-  MessageSquare,
-  Heart,
-} from "lucide-react";
-import { format } from "date-fns";
+// Legacy ProfileOverview - redirects to Enhanced version for better responsive design and database integration
+import React from "react";
+import EnhancedProfileOverview from "./EnhancedProfileOverview";
 
 const ProfileOverview = () => {
   const { user } = useAuth();
