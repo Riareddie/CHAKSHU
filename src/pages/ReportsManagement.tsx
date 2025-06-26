@@ -131,9 +131,35 @@ const ReportsManagement = () => {
       try {
         const result = await reportsService.getUserReports(user.id);
         if (result.success && result.data && result.data.reports) {
-          const displayReports = result.data.reports.map(
-            convertToDisplayFormat,
-          );
+          const displayReports = result.data.reports
+            .filter((report) => report && typeof report === "object")
+            .map((report) => {
+              try {
+                return convertToDisplayFormat(report);
+              } catch (conversionError) {
+                console.error(
+                  "Error converting report:",
+                  report,
+                  conversionError,
+                );
+                // Return a safe fallback report
+                return {
+                  id: report.id || "unknown",
+                  type: "Unknown",
+                  title: report.title || "Untitled Report",
+                  description: report.description || "No description available",
+                  phoneNumber: null,
+                  location: "Not specified",
+                  amount: undefined,
+                  status: "pending" as const,
+                  severity: "medium" as const,
+                  submittedAt: new Date(),
+                  updatedAt: new Date(),
+                  referenceId: report.id || "unknown",
+                  evidenceCount: 0,
+                } as DisplayReport;
+              }
+            });
           setReports(displayReports);
         } else {
           console.error("Failed to load reports:", result.error);
