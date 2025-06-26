@@ -21,6 +21,8 @@ import AuthModal from "@/components/auth/AuthModal";
 import useFormValidation, {
   enhancedValidations,
 } from "@/hooks/useFormValidation";
+import { reportsService, evidenceService } from "@/services/database";
+import type { ReportInsert } from "@/services/database";
 
 interface FormData {
   fraudType: string;
