@@ -89,16 +89,54 @@ const convertToDisplayFormat = (report: Report): DisplayReport => {
 };
 
 const ReportsManagement = () => {
-  const [reports, setReports] = useState<Report[]>(mockReports);
+  const { user } = useAuth();
+  const [reports, setReports] = useState<DisplayReport[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showNewReportModal, setShowNewReportModal] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedReport, setSelectedReport] = useState<DisplayReport | null>(
+    null,
+  );
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Load user reports from database
+  useEffect(() => {
+    const loadReports = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      try {
+        const result = await reportsService.getUserReports(user.id);
+        if (result.success && result.data) {
+          const displayReports = result.data.map(convertToDisplayFormat);
+          setReports(displayReports);
+        } else {
+          console.error("Failed to load reports:", result.error);
+          toast({
+            title: "Error Loading Reports",
+            description: "Failed to load your reports. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error loading reports:", error);
+        toast({
+          title: "Error Loading Reports",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReports();
+  }, [user, toast]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
