@@ -853,20 +853,20 @@ class RealtimeService {
     }
 
     let channel = supabase
-      .channel("reports-changes")
+      .channel("fraud-reports-changes")
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "reports",
+          table: "fraud_reports",
           filter: userId ? `user_id=eq.${userId}` : undefined,
         },
         callback,
       )
       .subscribe();
 
-    this.subscriptions.set("reports", channel);
+    this.subscriptions.set("fraud_reports", channel);
 
     return () => {
       channel.unsubscribe();
