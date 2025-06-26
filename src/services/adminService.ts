@@ -342,11 +342,18 @@ class AdminService {
           .select("status, amount_involved, created_at");
 
         if (reportsError) {
-          console.error("Reports query error:", {
-            message: reportsError.message,
-            details: reportsError.details,
-            hint: reportsError.hint,
-            code: reportsError.code,
+          console.error("Reports query error - Full object:", reportsError);
+          console.error(
+            "Reports query error - Stringified:",
+            JSON.stringify(reportsError, null, 2),
+          );
+          console.error("Reports query error - Properties:", {
+            message: reportsError?.message,
+            details: reportsError?.details,
+            hint: reportsError?.hint,
+            code: reportsError?.code,
+            error: reportsError?.error,
+            statusCode: reportsError?.statusCode,
           });
           console.warn("Using empty reports data due to error");
         } else {
@@ -365,11 +372,18 @@ class AdminService {
           .select("*", { count: "exact", head: true });
 
         if (usersError) {
-          console.error("User count query error:", {
-            message: usersError.message,
-            details: usersError.details,
-            hint: usersError.hint,
-            code: usersError.code,
+          console.error("User count query error - Full object:", usersError);
+          console.error(
+            "User count query error - Stringified:",
+            JSON.stringify(usersError, null, 2),
+          );
+          console.error("User count query error - Properties:", {
+            message: usersError?.message,
+            details: usersError?.details,
+            hint: usersError?.hint,
+            code: usersError?.code,
+            error: usersError?.error,
+            statusCode: usersError?.statusCode,
           });
           console.warn("Using 0 user count due to error");
         } else {
@@ -457,11 +471,21 @@ class AdminService {
         const result = await query;
 
         if (result.error) {
-          console.error("Reports for review query error:", {
-            message: result.error.message,
-            details: result.error.details,
-            hint: result.error.hint,
-            code: result.error.code,
+          console.error(
+            "Reports for review query error - Full object:",
+            result.error,
+          );
+          console.error(
+            "Reports for review query error - Stringified:",
+            JSON.stringify(result.error, null, 2),
+          );
+          console.error("Reports for review query error - Properties:", {
+            message: result.error?.message,
+            details: result.error?.details,
+            hint: result.error?.hint,
+            code: result.error?.code,
+            error: result.error?.error,
+            statusCode: result.error?.statusCode,
           });
           // Return empty result instead of throwing
           return {
@@ -592,11 +616,18 @@ class AdminService {
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("User preferences query error:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
+          console.error("User preferences query error - Full object:", error);
+          console.error(
+            "User preferences query error - Stringified:",
+            JSON.stringify(error, null, 2),
+          );
+          console.error("User preferences query error - Properties:", {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            error: error?.error,
+            statusCode: error?.statusCode,
           });
           console.warn("Using empty user preferences due to error");
         } else {
@@ -615,11 +646,18 @@ class AdminService {
           .not("user_id", "is", null);
 
         if (error) {
-          console.error("Report counts query error:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
+          console.error("Report counts query error - Full object:", error);
+          console.error(
+            "Report counts query error - Stringified:",
+            JSON.stringify(error, null, 2),
+          );
+          console.error("Report counts query error - Properties:", {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            error: error?.error,
+            statusCode: error?.statusCode,
           });
           console.warn("Using empty report counts due to error");
         } else {
