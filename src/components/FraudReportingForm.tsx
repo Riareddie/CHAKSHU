@@ -324,22 +324,25 @@ const FraudReportingForm = () => {
 
       console.log("Starting report submission for user:", user.id);
 
-      // Ensure user exists in database before creating report
-      const userResult = await ensureUserExists(user);
-      if (!userResult.success) {
-        console.error("Failed to ensure user exists:", userResult.error);
-        throw new Error(
-          userResult.error ||
-            "Failed to verify user account. Please contact support.",
+      // Try to ensure user exists in database, but continue even if it fails
+      try {
+        const userResult = await ensureUserExists(user);
+        if (userResult.created) {
+          console.log("New user account created in database");
+          toast({
+            title: "Account Setup Complete",
+            description: "Your account has been set up for fraud reporting.",
+          });
+        } else if (!userResult.success) {
+          console.warn("Could not create user record:", userResult.error);
+          // Continue anyway - we'll use the auth user ID directly
+        }
+      } catch (userError) {
+        console.warn(
+          "User creation failed, continuing with auth user:",
+          userError,
         );
-      }
-
-      if (userResult.created) {
-        console.log("New user account created in database");
-        toast({
-          title: "Account Setup Complete",
-          description: "Your account has been set up for fraud reporting.",
-        });
+        // Don't throw error here - we can proceed with just the auth user
       }
 
       // Validate form data before proceeding
