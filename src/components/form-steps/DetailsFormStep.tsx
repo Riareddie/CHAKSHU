@@ -168,6 +168,18 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                         : "Select date"}
                     </Button>
                   </PopoverTrigger>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      onUpdateData("dateTime", today);
+                    }}
+                    className="px-3"
+                  >
+                    Today
+                  </Button>
                   <PopoverContent className="w-auto p-0" align="start">
                     <CalendarComponent
                       mode="single"
