@@ -453,6 +453,7 @@ const FraudReportingForm = () => {
           setSubmitError(
             "Database configuration error detected. Please see the instructions below to fix this issue.",
           );
+          setHasDatabaseError(true);
           throw new Error("database_config_error");
         }
         throw new Error(reportResult.error || "Failed to create report");
