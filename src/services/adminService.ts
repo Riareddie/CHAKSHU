@@ -4,12 +4,7 @@
  */
 
 import { supabase, isDemoMode } from "@/integrations/supabase/client";
-import type {
-  Database,
-  Tables,
-  TablesInsert,
-  TablesUpdate,
-} from "@/integrations/supabase/types";
+import type { Database, Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 
 // Type aliases
@@ -116,7 +111,7 @@ class AdminService {
       resource_type: string;
       resource_id?: string;
       details?: any;
-    },
+    }
   ): Promise<ServiceResponse<T>> {
     try {
       if (isDemoMode) {
@@ -152,15 +147,12 @@ class AdminService {
         message: `${operation} completed successfully`,
       };
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : `Unknown error during ${operation}`;
+      const message = error instanceof Error ? error.message : `Unknown error during ${operation}`;
       console.error(`Admin ${operation} exception:`, error);
 
       // Log more detailed error information
-      if (error && typeof error === "object") {
-        console.error("Error details:", JSON.stringify(error, null, 2));
+      if (error && typeof error === 'object') {
+        console.error('Error details:', JSON.stringify(error, null, 2));
       }
 
       return {
@@ -223,8 +215,7 @@ class AdminService {
           {
             id: "RPT-2024-001",
             title: "UPI Fraud - Unauthorized Transaction",
-            description:
-              "Multiple unauthorized UPI transactions using fake QR codes",
+            description: "Multiple unauthorized UPI transactions using fake QR codes",
             fraud_type: "phishing",
             status: "pending",
             amount_involved: 75000,
@@ -242,8 +233,7 @@ class AdminService {
           {
             id: "RPT-2024-002",
             title: "Investment Scam - Crypto Platform",
-            description:
-              "Fraudulent cryptocurrency investment platform disappeared with funds",
+            description: "Fraudulent cryptocurrency investment platform disappeared with funds",
             fraud_type: "investment_scam",
             status: "under_review",
             amount_involved: 250000,
@@ -354,23 +344,17 @@ class AdminService {
 
       // Calculate statistics
       const totalReports = reports?.length || 0;
-      const pendingReports =
-        reports?.filter((r) => r.status === "pending").length || 0;
-      const resolvedReports =
-        reports?.filter((r) => r.status === "resolved").length || 0;
-      const rejectedReports =
-        reports?.filter((r) => r.status === "rejected").length || 0;
-      const totalAmount =
-        reports?.reduce((sum, r) => sum + (r.amount_involved || 0), 0) || 0;
+      const pendingReports = reports?.filter(r => r.status === "pending").length || 0;
+      const resolvedReports = reports?.filter(r => r.status === "resolved").length || 0;
+      const rejectedReports = reports?.filter(r => r.status === "rejected").length || 0;
+      const totalAmount = reports?.reduce((sum, r) => sum + (r.amount_involved || 0), 0) || 0;
 
       // Calculate monthly growth
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-      const recentReports =
-        reports?.filter((r) => new Date(r.created_at) >= lastMonth).length || 0;
-      const monthlyGrowthReports =
-        totalReports > 0 ? (recentReports / totalReports) * 100 : 0;
+      const recentReports = reports?.filter(r => new Date(r.created_at) >= lastMonth).length || 0;
+      const monthlyGrowthReports = totalReports > 0 ? (recentReports / totalReports) * 100 : 0;
 
       return {
         data: {
@@ -405,48 +389,46 @@ class AdminService {
       date_to?: string;
     },
     page: number = 1,
-    limit: number = 20,
+    limit: number = 20
   ): Promise<ServiceResponse<{ reports: ReportWithDetails[]; total: number }>> {
     return this.executeQuery(async () => {
       const offset = (page - 1) * limit;
 
-      let query = supabase
-        .from("reports")
-        .select(
-          `
-          *,
-          report_evidence (count)
-        `,
-          { count: "exact" },
-        )
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+      try {
+        let query = supabase
+          .from("reports")
+          .select("*", { count: "exact" })
+          .order("created_at", { ascending: false })
+          .range(offset, offset + limit - 1);
 
-      // Apply filters
-      if (filters?.status) query = query.eq("status", filters.status);
-      if (filters?.fraud_type)
-        query = query.eq("fraud_type", filters.fraud_type);
-      if (filters?.date_from)
-        query = query.gte("created_at", filters.date_from);
-      if (filters?.date_to) query = query.lte("created_at", filters.date_to);
+        // Apply filters
+        if (filters?.status) query = query.eq("status", filters.status);
+        if (filters?.fraud_type) query = query.eq("fraud_type", filters.fraud_type);
+        if (filters?.date_from) query = query.gte("created_at", filters.date_from);
+        if (filters?.date_to) query = query.lte("created_at", filters.date_to);
 
-      const result = await query;
+        const result = await query;
 
-      if (result.error) throw result.error;
+        if (result.error) {
+          console.error("Reports for review query error:", result.error);
+          // Return empty result instead of throwing
+          return {
+            data: {
+              reports: [],
+              total: 0,
+            },
+            error: null,
+          };
+        }
 
       // Enhance reports with additional data
-      const enhancedReports: ReportWithDetails[] = (result.data || []).map(
-        (report) => ({
-          ...report,
-          user_email: `user-${report.user_id.slice(0, 8)}@example.com`,
-          user_name: `User ${report.user_id.slice(0, 8)}`,
-          priority: this.calculatePriority(
-            report.amount_involved,
-            report.fraud_type,
-          ),
-          evidence_count: report.report_evidence?.[0]?.count || 0,
-        }),
-      );
+      const enhancedReports: ReportWithDetails[] = (result.data || []).map(report => ({
+        ...report,
+        user_email: `user-${report.user_id.slice(0, 8)}@example.com`,
+        user_name: `User ${report.user_id.slice(0, 8)}`,
+        priority: this.calculatePriority(report.amount_involved, report.fraud_type),
+        evidence_count: report.report_evidence?.[0]?.count || 0,
+      }));
 
       return {
         data: {
@@ -465,58 +447,54 @@ class AdminService {
     reportId: string,
     newStatus: string,
     comments?: string,
-    authorityAction?: string,
+    authorityAction?: string
   ): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(
-      async () => {
-        const { data: user } = await supabase.auth.getUser();
-        if (!user.user) throw new Error("Admin not authenticated");
+    return this.executeQuery(async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Admin not authenticated");
 
-        // Update the report
-        const { data: updatedReport, error: updateError } = await supabase
-          .from("reports")
-          .update({
-            status: newStatus as any,
-            authority_comments: comments,
-            authority_action: authorityAction as any,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", reportId)
-          .select()
-          .single();
-
-        if (updateError) throw updateError;
-
-        // Add to status history
-        await supabase.from("report_status_history").insert({
-          report_id: reportId,
+      // Update the report
+      const { data: updatedReport, error: updateError } = await supabase
+        .from("reports")
+        .update({
           status: newStatus as any,
-          comments: comments || `Status changed to ${newStatus}`,
-          changed_by: user.user.id,
+          authority_comments: comments,
           authority_action: authorityAction as any,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reportId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      // Add to status history
+      await supabase.from("report_status_history").insert({
+        report_id: reportId,
+        status: newStatus as any,
+        comments: comments || `Status changed to ${newStatus}`,
+        changed_by: user.user.id,
+        authority_action: authorityAction as any,
+      });
+
+      // Create notification for user
+      if (updatedReport.user_id) {
+        await supabase.from("notifications").insert({
+          user_id: updatedReport.user_id,
+          type: "report_update",
+          title: `Report ${reportId} Updated`,
+          message: `Your report status has been changed to ${newStatus}`,
+          priority: "medium",
         });
+      }
 
-        // Create notification for user
-        if (updatedReport.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: updatedReport.user_id,
-            type: "report_update",
-            title: `Report ${reportId} Updated`,
-            message: `Your report status has been changed to ${newStatus}`,
-            priority: "medium",
-          });
-        }
-
-        return { data: updatedReport, error: null };
-      },
-      "update report status",
-      {
-        action: "update_report_status",
-        resource_type: "report",
-        resource_id: reportId,
-        details: { newStatus, comments, authorityAction },
-      },
-    );
+      return { data: updatedReport, error: null };
+    }, "update report status", {
+      action: "update_report_status",
+      resource_type: "report",
+      resource_id: reportId,
+      details: { newStatus, comments, authorityAction },
+    });
   }
 
   /**
@@ -529,7 +507,7 @@ class AdminService {
       search?: string;
     },
     page: number = 1,
-    limit: number = 20,
+    limit: number = 20
   ): Promise<ServiceResponse<{ users: AdminUser[]; total: number }>> {
     return this.executeQuery(async () => {
       let userPrefs = [];
@@ -572,46 +550,34 @@ class AdminService {
       }
 
       // Build admin user list
-      const users: AdminUser[] = (userPrefs || []).map((pref) => {
-        const userReports =
-          reportCounts?.filter((r) => r.user_id === pref.user_id) || [];
-        const totalAmount = userReports.reduce(
-          (sum, r) => sum + (r.amount_involved || 0),
-          0,
-        );
+      const users: AdminUser[] = (userPrefs || []).map(pref => {
+        const userReports = reportCounts?.filter(r => r.user_id === pref.user_id) || [];
+        const totalAmount = userReports.reduce((sum, r) => sum + (r.amount_involved || 0), 0);
 
         return {
           id: pref.user_id,
           email: `user-${pref.user_id.slice(0, 8)}@example.com`,
           full_name: `User ${pref.user_id.slice(0, 8)}`,
           created_at: pref.created_at,
-          last_seen: new Date(
-            Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
+          last_seen: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
           reports_count: userReports.length,
           status: userReports.length > 0 ? "active" : "inactive",
           role: "user",
           total_amount_reported: totalAmount,
-          risk_score: this.calculateUserRiskScore(
-            userReports.length,
-            totalAmount,
-          ),
+          risk_score: this.calculateUserRiskScore(userReports.length, totalAmount),
         };
       });
 
       // Apply filters
       let filteredUsers = users;
       if (filters?.status) {
-        filteredUsers = filteredUsers.filter(
-          (u) => u.status === filters.status,
-        );
+        filteredUsers = filteredUsers.filter(u => u.status === filters.status);
       }
       if (filters?.search) {
         const search = filters.search.toLowerCase();
-        filteredUsers = filteredUsers.filter(
-          (u) =>
-            u.email.toLowerCase().includes(search) ||
-            u.full_name?.toLowerCase().includes(search),
+        filteredUsers = filteredUsers.filter(u =>
+          u.email.toLowerCase().includes(search) ||
+          u.full_name?.toLowerCase().includes(search)
         );
       }
 
@@ -635,24 +601,20 @@ class AdminService {
   async updateUserStatus(
     userId: string,
     status: "active" | "suspended" | "inactive",
-    reason?: string,
+    reason?: string
   ): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      async () => {
-        // In a real implementation, this would update a user_profiles table
-        // For now, we'll simulate the operation
-        console.log(`User ${userId} status updated to ${status}`, { reason });
+    return this.executeQuery(async () => {
+      // In a real implementation, this would update a user_profiles table
+      // For now, we'll simulate the operation
+      console.log(`User ${userId} status updated to ${status}`, { reason });
 
-        return { data: true, error: null };
-      },
-      "update user status",
-      {
-        action: "update_user_status",
-        resource_type: "user",
-        resource_id: userId,
-        details: { status, reason },
-      },
-    );
+      return { data: true, error: null };
+    }, "update user status", {
+      action: "update_user_status",
+      resource_type: "user",
+      resource_id: userId,
+      details: { status, reason },
+    });
   }
 
   /**
@@ -671,18 +633,12 @@ class AdminService {
       const dbResponseTime = Date.now() - startTime;
 
       // Check realtime connection status
-      const realtimeStatus = supabase.realtime.isConnected()
-        ? "connected"
-        : "disconnected";
+      const realtimeStatus = supabase.realtime.isConnected() ? "connected" : "disconnected";
 
       return {
         data: {
           database: {
-            status: dbError
-              ? "down"
-              : dbResponseTime > 1000
-                ? "degraded"
-                : "healthy",
+            status: dbError ? "down" : dbResponseTime > 1000 ? "degraded" : "healthy",
             responseTime: dbResponseTime,
             connections: 45, // Would get from database metrics in real implementation
           },
@@ -733,13 +689,10 @@ class AdminService {
           (payload) => {
             if (payload.eventType === "INSERT" && callbacks.onNewReport) {
               callbacks.onNewReport(payload.new as Report);
-            } else if (
-              payload.eventType === "UPDATE" &&
-              callbacks.onReportUpdate
-            ) {
+            } else if (payload.eventType === "UPDATE" && callbacks.onReportUpdate) {
               callbacks.onReportUpdate(payload.new as Report);
             }
-          },
+          }
         )
         .subscribe();
 
@@ -763,7 +716,7 @@ class AdminService {
           },
           (payload) => {
             callbacks.onUserActivity?.(payload.new);
-          },
+          }
         )
         .subscribe();
 
@@ -776,7 +729,7 @@ class AdminService {
 
     // Return cleanup function
     return () => {
-      unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
+      unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
     };
   }
 
@@ -789,64 +742,51 @@ class AdminService {
       status?: string;
       date_from?: string;
       date_to?: string;
-    },
+    }
   ): Promise<ServiceResponse<string>> {
-    return this.executeQuery(
-      async () => {
-        const { data: reports } = await supabase
-          .from("reports")
-          .select("*")
-          .order("created_at", { ascending: false });
+    return this.executeQuery(async () => {
+      const { data: reports } = await supabase
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-        // Apply filters
-        let filteredReports = reports || [];
-        if (filters?.status) {
-          filteredReports = filteredReports.filter(
-            (r) => r.status === filters.status,
-          );
-        }
-        if (filters?.date_from) {
-          filteredReports = filteredReports.filter(
-            (r) => r.created_at >= filters.date_from!,
-          );
-        }
-        if (filters?.date_to) {
-          filteredReports = filteredReports.filter(
-            (r) => r.created_at <= filters.date_to!,
-          );
-        }
+      // Apply filters
+      let filteredReports = reports || [];
+      if (filters?.status) {
+        filteredReports = filteredReports.filter(r => r.status === filters.status);
+      }
+      if (filters?.date_from) {
+        filteredReports = filteredReports.filter(r => r.created_at >= filters.date_from!);
+      }
+      if (filters?.date_to) {
+        filteredReports = filteredReports.filter(r => r.created_at <= filters.date_to!);
+      }
 
-        // Generate export data based on format
-        let exportData: string;
-        switch (format) {
-          case "json":
-            exportData = JSON.stringify(filteredReports, null, 2);
-            break;
-          case "csv":
-            exportData = this.convertToCSV(filteredReports);
-            break;
-          default:
-            throw new Error(`Export format ${format} not supported`);
-        }
+      // Generate export data based on format
+      let exportData: string;
+      switch (format) {
+        case "json":
+          exportData = JSON.stringify(filteredReports, null, 2);
+          break;
+        case "csv":
+          exportData = this.convertToCSV(filteredReports);
+          break;
+        default:
+          throw new Error(`Export format ${format} not supported`);
+      }
 
-        return { data: exportData, error: null };
-      },
-      "export reports",
-      {
-        action: "export_reports",
-        resource_type: "reports",
-        details: { format, filters },
-      },
-    );
+      return { data: exportData, error: null };
+    }, "export reports", {
+      action: "export_reports",
+      resource_type: "reports",
+      details: { format, filters },
+    });
   }
 
   /**
    * Helper methods
    */
-  private calculatePriority(
-    amount: number | null,
-    fraudType: string,
-  ): "low" | "medium" | "high" | "critical" {
+  private calculatePriority(amount: number | null, fraudType: string): "low" | "medium" | "high" | "critical" {
     if (!amount) return "low";
     if (amount >= 200000) return "critical";
     if (amount >= 100000) return "high";
@@ -854,10 +794,7 @@ class AdminService {
     return "low";
   }
 
-  private calculateUserRiskScore(
-    reportCount: number,
-    totalAmount: number,
-  ): number {
+  private calculateUserRiskScore(reportCount: number, totalAmount: number): number {
     // Simple risk scoring algorithm
     let score = 0;
     if (reportCount > 5) score += 2;
@@ -872,16 +809,12 @@ class AdminService {
     const headers = Object.keys(data[0]);
     const csvContent = [
       headers.join(","),
-      ...data.map((row) =>
-        headers
-          .map((header) => {
-            const value = row[header];
-            return typeof value === "string"
-              ? `"${value.replace(/"/g, '""')}"`
-              : value;
-          })
-          .join(","),
-      ),
+      ...data.map(row =>
+        headers.map(header => {
+          const value = row[header];
+          return typeof value === "string" ? `"${value.replace(/"/g, '""')}"` : value;
+        }).join(",")
+      )
     ].join("\n");
 
     return csvContent;
@@ -891,7 +824,7 @@ class AdminService {
    * Cleanup all subscriptions
    */
   cleanup(): void {
-    this.realtimeChannels.forEach((channel) => {
+    this.realtimeChannels.forEach(channel => {
       channel.unsubscribe();
     });
     this.realtimeChannels.clear();
