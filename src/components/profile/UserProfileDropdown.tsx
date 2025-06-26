@@ -143,8 +143,8 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                 <ChevronRight className="h-4 w-4" />
               </DropdownMenuItem>
             </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[90vh] p-0 flex flex-col">
-              <DialogHeader className="p-6 pb-0 flex-shrink-0">
+            <DialogContent className="max-w-6xl max-h-[90vh] p-0 flex flex-col overflow-hidden">
+              <DialogHeader className="p-6 pb-4 flex-shrink-0 border-b">
                 <DialogTitle className="text-2xl font-bold">
                   User Profile
                 </DialogTitle>
@@ -154,87 +154,91 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                 </DialogDescription>
               </DialogHeader>
 
-              <ScrollArea className="flex-1 px-6 pb-6">
-                <div className="pt-4">
-                  {/* Profile Stats Overview */}
-                  <div className="mb-6">
-                    <ProfileStats />
-                  </div>
-
-                  {/* Main Profile Content */}
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="w-full"
-                  >
-                    <TabsList className="grid w-full grid-cols-6">
-                      <TabsTrigger
-                        value="overview"
-                        className="flex items-center gap-2"
-                      >
-                        <User className="h-4 w-4" />
-                        <span className="hidden sm:inline">Overview</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="account"
-                        className="flex items-center gap-2"
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span className="hidden sm:inline">Account</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="security"
-                        className="flex items-center gap-2"
-                      >
-                        <Shield className="h-4 w-4" />
-                        <span className="hidden sm:inline">Security</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="privacy"
-                        className="flex items-center gap-2"
-                      >
-                        <Lock className="h-4 w-4" />
-                        <span className="hidden sm:inline">Privacy</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="notifications"
-                        className="flex items-center gap-2"
-                      >
-                        <Bell className="h-4 w-4" />
-                        <span className="hidden sm:inline">Notifications</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="activity"
-                        className="flex items-center gap-2"
-                      >
-                        <Activity className="h-4 w-4" />
-                        <span className="hidden sm:inline">Activity</span>
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <div className="mt-6">
-                      <TabsContent value="overview" className="mt-0">
-                        <ProfileOverview />
-                      </TabsContent>
-                      <TabsContent value="account" className="mt-0">
-                        <AccountSettings />
-                      </TabsContent>
-                      <TabsContent value="security" className="mt-0">
-                        <SecuritySettings />
-                      </TabsContent>
-                      <TabsContent value="privacy" className="mt-0">
-                        <PrivacySettings />
-                      </TabsContent>
-                      <TabsContent value="notifications" className="mt-0">
-                        <NotificationPreferences />
-                      </TabsContent>
-                      <TabsContent value="activity" className="mt-0">
-                        <ActivityHistory />
-                      </TabsContent>
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full px-6 py-4">
+                  <div className="space-y-6">
+                    {/* Profile Stats Overview */}
+                    <div>
+                      <ProfileStats />
                     </div>
-                  </Tabs>
-                </div>
-              </ScrollArea>
+
+                    {/* Main Profile Content */}
+                    <Tabs
+                      value={activeTab}
+                      onValueChange={setActiveTab}
+                      className="w-full"
+                    >
+                      <div className="sticky top-0 bg-white z-10 pb-4 border-b mb-4">
+                        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
+                          <TabsTrigger
+                            value="overview"
+                            className="flex items-center gap-1 text-xs sm:text-sm p-2"
+                          >
+                            <User className="h-4 w-4" />
+                            <span className="hidden sm:inline">Overview</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="account"
+                            className="flex items-center gap-1 text-xs sm:text-sm p-2"
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span className="hidden sm:inline">Account</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="security"
+                            className="flex items-center gap-1 text-xs sm:text-sm p-2"
+                          >
+                            <Shield className="h-4 w-4" />
+                            <span className="hidden sm:inline">Security</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="privacy"
+                            className="flex items-center gap-1 text-xs sm:text-sm p-2"
+                          >
+                            <Lock className="h-4 w-4" />
+                            <span className="hidden sm:inline">Privacy</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="notifications"
+                            className="flex items-center gap-1 text-xs sm:text-sm p-2"
+                          >
+                            <Bell className="h-4 w-4" />
+                            <span className="hidden sm:inline">Notify</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="activity"
+                            className="flex items-center gap-1 text-xs sm:text-sm p-2"
+                          >
+                            <Activity className="h-4 w-4" />
+                            <span className="hidden sm:inline">Activity</span>
+                          </TabsTrigger>
+                        </TabsList>
+                      </div>
+
+                      <div className="space-y-6">
+                        <TabsContent value="overview" className="mt-0">
+                          <ProfileOverview />
+                        </TabsContent>
+                        <TabsContent value="account" className="mt-0">
+                          <AccountSettings />
+                        </TabsContent>
+                        <TabsContent value="security" className="mt-0">
+                          <SecuritySettings />
+                        </TabsContent>
+                        <TabsContent value="privacy" className="mt-0">
+                          <PrivacySettings />
+                        </TabsContent>
+                        <TabsContent value="notifications" className="mt-0">
+                          <NotificationPreferences />
+                        </TabsContent>
+                        <TabsContent value="activity" className="mt-0">
+                          <ActivityHistory />
+                        </TabsContent>
+                      </div>
+                    </Tabs>
+                  </div>
+                </ScrollArea>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
