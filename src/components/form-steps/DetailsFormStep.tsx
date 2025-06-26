@@ -168,39 +168,40 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                         : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={formData.dateTime || undefined}
-                    onSelect={(date) => {
-                      // Ensure we set a proper Date object or null
-                      if (date) {
-                        // Set time to current time if not set, or keep existing time
-                        const newDate = new Date(date);
-                        if (formData.dateTime) {
-                          // Preserve existing time if user already selected a time
-                          newDate.setHours(formData.dateTime.getHours());
-                          newDate.setMinutes(formData.dateTime.getMinutes());
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={formData.dateTime || undefined}
+                      onSelect={(date) => {
+                        // Ensure we set a proper Date object or null
+                        if (date) {
+                          // Set time to current time if not set, or keep existing time
+                          const newDate = new Date(date);
+                          if (formData.dateTime) {
+                            // Preserve existing time if user already selected a time
+                            newDate.setHours(formData.dateTime.getHours());
+                            newDate.setMinutes(formData.dateTime.getMinutes());
+                          } else {
+                            // Set to current time for new selection
+                            const now = new Date();
+                            newDate.setHours(now.getHours());
+                            newDate.setMinutes(now.getMinutes());
+                          }
+                          onUpdateData("dateTime", newDate);
                         } else {
-                          // Set to current time for new selection
-                          const now = new Date();
-                          newDate.setHours(now.getHours());
-                          newDate.setMinutes(now.getMinutes());
+                          onUpdateData("dateTime", null);
                         }
-                        onUpdateData("dateTime", newDate);
-                      } else {
-                        onUpdateData("dateTime", null);
-                      }
-                    }}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                    disabled={(date) => {
-                      // Disable future dates - can't report fraud that hasn't happened yet
-                      return date > new Date();
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      disabled={(date) => {
+                        // Disable future dates - can't report fraud that hasn't happened yet
+                        return date > new Date();
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               {errors.dateTime && (
                 <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
@@ -215,10 +216,14 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                   <Input
                     id="incidentTime"
                     type="time"
-                    value={formData.dateTime ? format(formData.dateTime, "HH:mm") : ""}
+                    value={
+                      formData.dateTime
+                        ? format(formData.dateTime, "HH:mm")
+                        : ""
+                    }
                     onChange={(e) => {
                       if (formData.dateTime && e.target.value) {
-                        const [hours, minutes] = e.target.value.split(':');
+                        const [hours, minutes] = e.target.value.split(":");
                         const newDate = new Date(formData.dateTime);
                         newDate.setHours(parseInt(hours), parseInt(minutes));
                         onUpdateData("dateTime", newDate);
