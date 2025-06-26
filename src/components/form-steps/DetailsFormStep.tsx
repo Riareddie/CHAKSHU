@@ -162,32 +162,9 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                Select when the fraud incident occurred. You can also specify the approximate time.
+                Select when the fraud incident occurred. You can also specify
+                the approximate time.
               </p>
-            </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Display selected date and time */}
-              {formData.dateTime && (
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-2 mt-2">
-                  <p className="text-sm text-blue-800">
-                    <strong>Selected:</strong>{" "}
-                    {format(
-                      formData.dateTime,
-                      "EEEE, MMMM do, yyyy 'at' h:mm a",
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {errors.dateTime && (
-                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-                  {errors.dateTime}
-                </p>
-              )}
             </div>
 
             <div>
