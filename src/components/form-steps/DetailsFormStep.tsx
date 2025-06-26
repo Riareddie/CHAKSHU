@@ -171,9 +171,32 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                   <CalendarComponent
                     mode="single"
                     selected={formData.dateTime || undefined}
-                    onSelect={(date) => onUpdateData("dateTime", date)}
+                    onSelect={(date) => {
+                      // Ensure we set a proper Date object or null
+                      if (date) {
+                        // Set time to current time if not set, or keep existing time
+                        const newDate = new Date(date);
+                        if (formData.dateTime) {
+                          // Preserve existing time if user already selected a time
+                          newDate.setHours(formData.dateTime.getHours());
+                          newDate.setMinutes(formData.dateTime.getMinutes());
+                        } else {
+                          // Set to current time for new selection
+                          const now = new Date();
+                          newDate.setHours(now.getHours());
+                          newDate.setMinutes(now.getMinutes());
+                        }
+                        onUpdateData("dateTime", newDate);
+                      } else {
+                        onUpdateData("dateTime", null);
+                      }
+                    }}
                     initialFocus
                     className="p-3 pointer-events-auto"
+                    disabled={(date) => {
+                      // Disable future dates - can't report fraud that hasn't happened yet
+                      return date > new Date();
+                    }}
                   />
                 </PopoverContent>
               </Popover>
