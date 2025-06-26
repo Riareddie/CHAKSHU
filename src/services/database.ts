@@ -12,10 +12,42 @@ import type {
 } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 
-// Type aliases for convenience
-type Report = Tables<"reports">;
-type ReportInsert = TablesInsert<"reports">;
-type ReportUpdate = TablesUpdate<"reports">;
+// Type aliases for convenience - using fraud_reports table
+type FraudReport = {
+  id: string;
+  user_id: string;
+  report_type: string;
+  fraudulent_number: string;
+  incident_date: string;
+  incident_time?: string;
+  description: string;
+  fraud_category: string;
+  evidence_urls?: string[];
+  status: string;
+  priority: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type FraudReportInsert = {
+  user_id: string;
+  report_type: string;
+  fraudulent_number: string;
+  incident_date: string;
+  incident_time?: string;
+  description: string;
+  fraud_category: string;
+  evidence_urls?: string[];
+  status?: string;
+  priority?: string;
+};
+
+type FraudReportUpdate = Partial<FraudReportInsert>;
+
+// Keep legacy names for compatibility
+type Report = FraudReport;
+type ReportInsert = FraudReportInsert;
+type ReportUpdate = FraudReportUpdate;
 
 type Notification = Tables<"notifications">;
 type NotificationInsert = TablesInsert<"notifications">;
