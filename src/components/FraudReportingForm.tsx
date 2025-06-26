@@ -304,52 +304,26 @@ const FraudReportingForm = () => {
     setSubmitError(null);
 
     try {
-      // First validate the current step
-      const isStepValid = validateCurrentStep();
-      if (!isStepValid) {
-        setSubmitError(
-          "Please correct the highlighted errors before submitting.",
-        );
-        toast({
-          title: "Validation Failed",
-          description: "Please check the form for errors and try again.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
+      // Comprehensive form validation
+      const validationErrors = [];
 
-      // Then validate the entire form
-      const isFormValid = validateForm(formData);
+      if (!formData.fraudType) validationErrors.push("fraud type");
+      if (!formData.category) validationErrors.push("category");
+      if (!formData.phoneNumber || formData.phoneNumber.length < 10)
+        validationErrors.push("valid phone number");
+      if (
+        !formData.messageContent ||
+        formData.messageContent.trim().length < 10
+      )
+        validationErrors.push("detailed description (minimum 10 characters)");
+      if (!formData.dateTime) validationErrors.push("incident date");
 
-      if (!isFormValid) {
-        // Create specific error message based on which fields are invalid
-        const errorFields = Object.keys(errors);
-        let errorMessage = "Please correct the following errors: ";
-
-        if (errorFields.includes("phoneNumber")) {
-          errorMessage += "invalid phone number, ";
-        }
-        if (errorFields.includes("messageContent")) {
-          errorMessage += "description too short or missing, ";
-        }
-        if (errorFields.includes("dateTime")) {
-          errorMessage += "invalid date, ";
-        }
-        if (errorFields.includes("fraudType")) {
-          errorMessage += "fraud type not selected, ";
-        }
-        if (errorFields.includes("category")) {
-          errorMessage += "category not selected, ";
-        }
-
-        // Remove trailing comma and space
-        errorMessage = errorMessage.replace(/, $/, "");
-
+      if (validationErrors.length > 0) {
+        const errorMessage = `Please provide: ${validationErrors.join(", ")}`;
         setSubmitError(errorMessage);
         toast({
           title: "Validation Failed",
-          description: "Please check the highlighted fields and try again.",
+          description: errorMessage,
           variant: "destructive",
         });
         setIsSubmitting(false);
