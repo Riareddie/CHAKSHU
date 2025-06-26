@@ -448,9 +448,13 @@ const FraudReportingForm = () => {
       };
 
       // Submit report to database
+      console.log("Submitting report with data:", reportData);
       const reportResult = await reportsService.create(reportData);
+      console.log("Report submission result:", reportResult);
 
       if (!reportResult.success || !reportResult.data) {
+        console.error("Report creation failed:", reportResult.error);
+
         // Check for infinite recursion error specifically
         if (
           reportResult.error?.includes("infinite recursion") ||
@@ -462,9 +466,10 @@ const FraudReportingForm = () => {
           setHasDatabaseError(true);
           throw new Error("database_config_error");
         }
+
+        // Throw the actual error message for better debugging
         throw new Error(reportResult.error || "Failed to create report");
       }
-
       const createdReport = reportResult.data;
 
       // Upload evidence files if any
