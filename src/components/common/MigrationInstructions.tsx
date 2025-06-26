@@ -248,7 +248,14 @@ export function MigrationInstructions() {
           </AlertDescription>
         </Alert>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              After applying the migration, test if it worked:
+            </p>
+            <DatabaseTestButton />
+          </div>
+
           <p className="text-sm text-gray-600">
             If you're not a database administrator, please share these
             instructions with your technical team or contact support for
