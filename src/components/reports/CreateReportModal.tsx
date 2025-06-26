@@ -20,6 +20,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { reportsService } from "@/services/database";
+import { Loader2 } from "lucide-react";
 import { Save, Lock } from "lucide-react";
 
 interface CreateReportModalProps {
