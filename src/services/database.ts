@@ -1235,50 +1235,82 @@ class FAQService extends DatabaseService {
    * Get all FAQs
    */
   async getAll(category?: string): Promise<ServiceResponse<any[]>> {
-    return this.executeQuery(() => {
-      let query = supabase
-        .from("faqs")
-        .select("*")
-        .order("priority", { ascending: false })
-        .order("created_at", { ascending: false });
+    // Return mock FAQ data since faqs table doesn't exist yet
+    const mockFAQs = [
+      {
+        id: "1",
+        question: "How do I report a fraud?",
+        answer:
+          "You can report fraud by clicking the 'Report Fraud' button on the homepage and filling out the form with details.",
+        category: "reporting",
+        is_featured: true,
+        priority: 10,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: "2",
+        question: "What information should I include in my report?",
+        answer:
+          "Include as much detail as possible: phone numbers, emails, websites, amounts involved, and any evidence you have.",
+        category: "reporting",
+        is_featured: true,
+        priority: 9,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: "3",
+        question: "How long does it take to process a report?",
+        answer:
+          "Most reports are reviewed within 24-48 hours. You'll receive updates via email and in your dashboard.",
+        category: "process",
+        is_featured: false,
+        priority: 8,
+        created_at: new Date().toISOString(),
+      },
+    ];
 
-      if (category) {
-        query = query.eq("category", category);
-      }
+    const filteredFAQs = category
+      ? mockFAQs.filter((faq) => faq.category === category)
+      : mockFAQs;
 
-      return query;
-    }, "fetch FAQs");
+    return Promise.resolve({
+      data: filteredFAQs,
+      error: null,
+      success: true,
+    });
   }
 
   /**
    * Get featured FAQs
    */
   async getFeatured(): Promise<ServiceResponse<any[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("faqs")
-          .select("*")
-          .eq("is_featured", true)
-          .order("priority", { ascending: false })
-          .limit(10),
-      "fetch featured FAQs",
-    );
+    const response = await this.getAll();
+    if (response.success && response.data) {
+      return {
+        ...response,
+        data: response.data.filter((faq: any) => faq.is_featured).slice(0, 10),
+      };
+    }
+    return response;
   }
 
   /**
    * Search FAQs
    */
   async search(query: string): Promise<ServiceResponse<any[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("faqs")
-          .select("*")
-          .or(`question.ilike.%${query}%,answer.ilike.%${query}%`)
-          .order("priority", { ascending: false }),
-      "search FAQs",
-    );
+    const response = await this.getAll();
+    if (response.success && response.data) {
+      const searchTerm = query.toLowerCase();
+      return {
+        ...response,
+        data: response.data.filter(
+          (faq: any) =>
+            faq.question.toLowerCase().includes(searchTerm) ||
+            faq.answer.toLowerCase().includes(searchTerm),
+        ),
+      };
+    }
+    return response;
   }
 }
 
