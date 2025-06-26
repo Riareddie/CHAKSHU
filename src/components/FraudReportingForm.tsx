@@ -104,7 +104,7 @@ const FraudReportingForm = () => {
     validateForm,
     clearError,
     hasError,
-    setErrors,
+    setError,
   } = useFormValidation(validationSchema);
 
   // Simple getError function using errors object directly
