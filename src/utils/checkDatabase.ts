@@ -29,11 +29,18 @@ export async function checkDatabaseTables() {
             .select("*")
             .limit(1);
           if (error) {
-            console.error(`❌ Table '${table}' error:`, {
-              message: error.message,
-              details: error.details,
-              hint: error.hint,
-              code: error.code,
+            console.error(`❌ Table '${table}' error - Full object:`, error);
+            console.error(
+              `❌ Table '${table}' error - Stringified:`,
+              JSON.stringify(error, null, 2),
+            );
+            console.error(`❌ Table '${table}' error - Properties:`, {
+              message: error?.message,
+              details: error?.details,
+              hint: error?.hint,
+              code: error?.code,
+              error: error?.error,
+              statusCode: error?.statusCode,
             });
           } else {
             console.log(`✅ Table '${table}' is accessible`);
