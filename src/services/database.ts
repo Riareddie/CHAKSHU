@@ -115,6 +115,20 @@ class DatabaseService {
           response.error.message || `Failed to ${operation}`;
 
         if (response.error.message?.includes("infinite recursion")) {
+          // Log detailed instructions for developers
+          console.error(
+            "🚨 INFINITE RECURSION IN DATABASE POLICIES DETECTED 🚨",
+          );
+          console.error(
+            "This error occurs when RLS policies have circular references.",
+          );
+          console.error(
+            "To fix this, run the migration: supabase/migrations/20250614000000-fix-rls-infinite-recursion.sql",
+          );
+          console.error(
+            "Or check the DatabaseStatus component for detailed instructions.",
+          );
+
           userFriendlyMessage =
             "Database configuration issue detected. Please contact support.";
         } else if (
