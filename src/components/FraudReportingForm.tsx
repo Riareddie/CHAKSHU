@@ -32,6 +32,9 @@ interface FormData {
   amount?: number;
   location?: string;
   additionalDetails?: string;
+  title?: string;
+  city?: string;
+  state?: string;
 }
 
 const FraudReportingForm = () => {
