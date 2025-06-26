@@ -309,8 +309,8 @@ const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
     setIsRefreshing(true);
     try {
       const result = await reportsService.getUserReports(user.id);
-      if (result.success && result.data) {
-        const mockReports = result.data.map(convertToMockFormat);
+      if (result.success && result.data && result.data.reports) {
+        const mockReports = result.data.reports.map(convertToMockFormat);
         setAllReports(mockReports);
         toast({
           title: "Data Refreshed",
