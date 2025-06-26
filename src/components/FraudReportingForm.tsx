@@ -336,6 +336,10 @@ const FraudReportingForm = () => {
 
       if (userResult.created) {
         console.log("New user account created in database");
+        toast({
+          title: "Account Setup Complete",
+          description: "Your account has been set up for fraud reporting.",
+        });
       }
 
       // Validate form data before proceeding
