@@ -444,6 +444,16 @@ const FraudReportingForm = () => {
       const reportResult = await reportsService.create(reportData);
 
       if (!reportResult.success || !reportResult.data) {
+        // Check for infinite recursion error specifically
+        if (
+          reportResult.error?.includes("infinite recursion") ||
+          reportResult.error?.includes("Database configuration")
+        ) {
+          setSubmitError(
+            "Database configuration error detected. Please see the instructions below to fix this issue.",
+          );
+          throw new Error("database_config_error");
+        }
         throw new Error(reportResult.error || "Failed to create report");
       }
 
