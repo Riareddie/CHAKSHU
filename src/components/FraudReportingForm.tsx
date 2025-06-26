@@ -495,15 +495,26 @@ const FraudReportingForm = () => {
       localStorage.removeItem("fraud-report-draft");
       setCurrentStep(1);
     } catch (error) {
-      setSubmitError(
-        "An unexpected error occurred while submitting your report. Please try again.",
-      );
-      toast({
-        title: "Submission Failed",
-        description:
-          "Failed to submit report. Please try again or contact support.",
-        variant: "destructive",
-      });
+      // Handle database configuration errors specifically
+      if (error instanceof Error && error.message === "database_config_error") {
+        setHasDatabaseError(true);
+        toast({
+          title: "Database Configuration Error",
+          description:
+            "Please apply the database migration to fix this issue. Instructions are shown below.",
+          variant: "destructive",
+        });
+      } else {
+        setSubmitError(
+          "An unexpected error occurred while submitting your report. Please try again.",
+        );
+        toast({
+          title: "Submission Failed",
+          description:
+            "Failed to submit report. Please try again or contact support.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
