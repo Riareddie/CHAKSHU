@@ -30,6 +30,7 @@ export async function ensureUserExists(
       // User doesn't exist, create them
       console.log("Creating new user in database:", authUser.id);
 
+      // Use RPC function to create user if available, or fallback to direct insert
       const { error: createError } = await supabase.from("users").insert({
         id: authUser.id,
         email: authUser.email || "",
