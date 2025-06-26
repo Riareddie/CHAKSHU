@@ -37,6 +37,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
+import CRUDTester from "@/components/admin/CRUDTester";
 import ErrorBoundary from "@/components/ui/error-boundary";
 
 const queryClient = new QueryClient({
@@ -122,6 +123,7 @@ const AppContent = () => {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/profile" element={<UserProfile />} />
+            <Route path="/admin/crud-tester" element={<CRUDTester />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
