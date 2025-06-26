@@ -338,6 +338,7 @@ class AdminService {
         }
       } catch (error) {
         console.error("Reports query exception:", error);
+        console.warn("Falling back to demo mode for reports");
         reports = [];
       }
 
@@ -360,6 +361,7 @@ class AdminService {
         }
       } catch (error) {
         console.error("User count query exception:", error);
+        console.warn("Falling back to demo mode for user count");
         usersCount = 0;
       }
 
