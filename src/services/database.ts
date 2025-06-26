@@ -275,15 +275,13 @@ class ReportsService extends DatabaseService {
       pending: number;
       resolved: number;
       rejected: number;
-      totalAmount: number;
-      byFraudType: Record<string, number>;
-      byLocation: Record<string, number>;
+      byFraudCategory: Record<string, number>;
     }>
   > {
     return this.executeQuery(async () => {
       const result = await supabase
-        .from("reports")
-        .select("status, amount_involved, fraud_type, city, state");
+        .from("fraud_reports")
+        .select("status, fraud_category");
 
       if (result.error) return result;
 
@@ -293,23 +291,13 @@ class ReportsService extends DatabaseService {
         pending: reports.filter((r) => r.status === "pending").length,
         resolved: reports.filter((r) => r.status === "resolved").length,
         rejected: reports.filter((r) => r.status === "rejected").length,
-        totalAmount: reports.reduce(
-          (sum, r) => sum + (r.amount_involved || 0),
-          0,
-        ),
-        byFraudType: {} as Record<string, number>,
-        byLocation: {} as Record<string, number>,
+        byFraudCategory: {} as Record<string, number>,
       };
 
-      // Calculate fraud type distribution
+      // Calculate fraud category distribution
       reports.forEach((report) => {
-        stats.byFraudType[report.fraud_type] =
-          (stats.byFraudType[report.fraud_type] || 0) + 1;
-
-        if (report.state) {
-          stats.byLocation[report.state] =
-            (stats.byLocation[report.state] || 0) + 1;
-        }
+        stats.byFraudCategory[report.fraud_category] =
+          (stats.byFraudCategory[report.fraud_category] || 0) + 1;
       });
 
       return { data: stats, error: null };
