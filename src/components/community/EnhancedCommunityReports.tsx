@@ -370,16 +370,19 @@ const EnhancedCommunityReports: React.FC = () => {
             />
 
             <Select
-              value={filters.fraudType}
+              value={filters.fraudType || "all"}
               onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, fraudType: value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  fraudType: value === "all" ? "" : value,
+                }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Fraud Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="UPI Fraud">UPI Fraud</SelectItem>
                 <SelectItem value="Call Fraud">Call Fraud</SelectItem>
                 <SelectItem value="WhatsApp Scam">WhatsApp Scam</SelectItem>
