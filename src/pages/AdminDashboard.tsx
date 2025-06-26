@@ -18,6 +18,7 @@ import ThirdPartyIntegrations from "@/components/admin/ThirdPartyIntegrations";
 import RealTimeSyncMonitor from "@/components/admin/RealTimeSyncMonitor";
 import CaseEscalationSystem from "@/components/admin/CaseEscalationSystem";
 import ComplianceMonitor from "@/components/admin/ComplianceMonitor";
+import DatabaseConnectionStatus from "@/components/admin/DatabaseConnectionStatus";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -93,6 +94,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="health" className="space-y-6">
+              <DatabaseConnectionStatus />
               <SystemHealthMonitoring />
             </TabsContent>
 
