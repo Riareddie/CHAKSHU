@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,12 +38,14 @@ import {
   Clock,
   FileText,
   Shield,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 import ReportDetailsModal from "@/components/dashboard/ReportDetailsModal";
 import EditReportModal from "@/components/reports/EditReportModal";
-import { mockReportsData, getReportStats } from "@/data/mockReports";
+import { reportsService, type Report } from "@/services/database";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Report {
   id: string;
