@@ -68,9 +68,7 @@ export async function checkSupabaseFullHealth(): Promise<SupabaseHealthCheck> {
     // Test both auth and database connectivity
     const [authResult, dbResult] = await Promise.allSettled([
       supabase.auth.getSession(),
-      supabase
-        .from("fraud_reports")
-        .select("count", { count: "exact", head: true }),
+      supabase.from("reports").select("count", { count: "exact", head: true }),
     ]);
 
     const responseTime = Date.now() - startTime;
