@@ -319,6 +319,29 @@ const FraudReportingForm = () => {
       }
 
       console.log("Starting report submission for user:", user.id);
+
+      // Validate form data before proceeding
+      if (!formData.fraudType) {
+        throw new Error("Please select a fraud type");
+      }
+      if (!formData.category) {
+        throw new Error("Please select a fraud category");
+      }
+      if (!formData.phoneNumber) {
+        throw new Error("Please enter a phone number");
+      }
+      if (
+        !formData.messageContent ||
+        formData.messageContent.trim().length < 10
+      ) {
+        throw new Error(
+          "Please provide a detailed description (at least 10 characters)",
+        );
+      }
+      if (!formData.dateTime) {
+        throw new Error("Please select the incident date and time");
+      }
+
       // First validate the current step
       const isStepValid = validateCurrentStep();
       if (!isStepValid) {
