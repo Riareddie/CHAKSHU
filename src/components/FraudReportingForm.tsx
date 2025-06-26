@@ -356,17 +356,59 @@ const FraudReportingForm = () => {
         return;
       }
 
-      // Simulate API submission
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Parse location into city and state
+      const locationParts = formData.location
+        ?.split(",")
+        .map((part) => part.trim());
+      const city = locationParts?.[0] || null;
+      const state = locationParts?.[1] || locationParts?.[0] || null;
 
-      // Generate reference ID
-      const referenceId = `FR-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      // Generate title from fraud type and category
+      const title =
+        formData.title || `${formData.fraudType} - ${formData.category}`;
+
+      // Map form data to database schema
+      const reportData: ReportInsert = {
+        user_id: user.id,
+        title: title,
+        description: formData.messageContent,
+        fraud_type: formData.fraudType
+          .toLowerCase()
+          .replace(/\s+/g, "_") as any,
+        amount_involved: formData.amount || null,
+        incident_date: formData.dateTime?.toISOString() || null,
+        city: city,
+        state: state,
+        contact_info: {
+          phone_number: formData.phoneNumber,
+          additional_details: formData.additionalDetails,
+        },
+        status: "pending",
+      };
+
+      // Submit report to database
+      const reportResult = await reportsService.create(reportData);
+
+      if (!reportResult.success || !reportResult.data) {
+        throw new Error(reportResult.error || "Failed to create report");
+      }
+
+      const createdReport = reportResult.data;
+
+      // Upload evidence files if any
+      if (formData.files.length > 0) {
+        const uploadPromises = formData.files.map((file) =>
+          evidenceService.uploadFile(file, createdReport.id, user.id),
+        );
+
+        await Promise.allSettled(uploadPromises);
+      }
 
       setSubmitSuccess(true);
 
       toast({
         title: "Report Submitted Successfully",
-        description: `Your fraud report has been submitted. Reference ID: ${referenceId}`,
+        description: `Your fraud report has been submitted with ID: ${createdReport.id}`,
       });
 
       // Clear form and draft
@@ -380,6 +422,9 @@ const FraudReportingForm = () => {
         amount: undefined,
         location: "",
         additionalDetails: "",
+        title: "",
+        city: "",
+        state: "",
       });
       localStorage.removeItem("fraud-report-draft");
       setCurrentStep(1);
