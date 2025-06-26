@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import MigrationInstructions from "./MigrationInstructions";
 import {
   checkDatabaseHealth,
   getDatabaseStatus,
