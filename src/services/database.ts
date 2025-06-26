@@ -383,54 +383,20 @@ class ReportsService extends DatabaseService {
     updates: ReportUpdate,
     updatedBy?: string,
   ): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(async () => {
-      // Get original report for change tracking
-      const originalResult = await supabase
-        .from("reports")
-        .select("*")
-        .eq("id", id)
-        .single();
+    // Mock implementation
+    const updatedReport = {
+      id,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
 
-      if (!originalResult.data) {
-        throw new Error("Report not found");
-      }
-
-      const updateData = {
-        ...updates,
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await supabase
-        .from("reports")
-        .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
-
-      // Track status changes
-      if (updates.status && originalResult.data.status !== updates.status) {
-        await supabase.from("report_status_history").insert({
-          report_id: id,
-          status: updates.status,
-          changed_by: updatedBy,
-          comments: `Status changed from ${originalResult.data.status} to ${updates.status}`,
-        });
-
-        // Notify user of status change
-        await supabase.from("notifications").insert({
-          user_id: originalResult.data.user_id,
-          title: "Report Status Updated",
-          message: `Your report status has been updated to: ${updates.status}`,
-          type: "info",
-          reference_id: id,
-          reference_type: "report",
-        });
-      }
-
-      return result;
-    }, "update report");
+    return Promise.resolve({
+      data: updatedReport,
+      error: null,
+      success: true,
+      message: "Report updated successfully (demo)",
+    });
   }
-
   /**
    * Soft delete report
    */
