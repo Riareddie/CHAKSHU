@@ -202,7 +202,7 @@ class ReportsService extends DatabaseService {
    */
   async getById(id: string): Promise<ServiceResponse<Report>> {
     return this.executeQuery(
-      () => supabase.from("reports").select("*").eq("id", id).single(),
+      () => supabase.from("fraud_reports").select("*").eq("id", id).single(),
       "fetch report",
     );
   }
