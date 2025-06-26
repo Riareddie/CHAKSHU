@@ -259,18 +259,40 @@ const ReportsManagement = () => {
     setSelectedReport(null);
   };
 
-  const handleSaveReport = (updatedReport: Report) => {
-    setReports((prevReports) =>
-      prevReports.map((report) =>
-        report.id === updatedReport.id ? updatedReport : report,
-      ),
-    );
-    setIsEditModalOpen(false);
-    setSelectedReport(null);
-    toast({
-      title: "Report Updated",
-      description: "Your fraud report has been updated successfully.",
-    });
+  const handleSaveReport = async (updatedReport: DisplayReport) => {
+    try {
+      // Update in database
+      const result = await reportsService.update(updatedReport.id, {
+        title: updatedReport.title,
+        description: updatedReport.description,
+        amount_involved: updatedReport.amount || null,
+        // Add other fields as needed
+      });
+
+      if (result.success) {
+        // Update local state
+        setReports((prevReports) =>
+          prevReports.map((report) =>
+            report.id === updatedReport.id ? updatedReport : report,
+          ),
+        );
+        setIsEditModalOpen(false);
+        setSelectedReport(null);
+        toast({
+          title: "Report Updated",
+          description: "Your fraud report has been updated successfully.",
+        });
+      } else {
+        throw new Error(result.error || "Failed to update report");
+      }
+    } catch (error) {
+      console.error("Error updating report:", error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update your report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const statusCounts = {
