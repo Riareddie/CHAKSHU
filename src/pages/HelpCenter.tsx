@@ -102,7 +102,7 @@ const HelpCenter = () => {
               <VideoLibrary />
             </TabsContent>
 
-            <TabsContent value="support" className="mt-6">
+            <TabsContent value="support" className="mt-6" id="contact">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <LiveChat />
                 <SupportTickets />
