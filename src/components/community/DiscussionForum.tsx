@@ -1,32 +1,6 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  MessageCircle,
-  ThumbsUp,
-  Clock,
-  Pin,
-  Search,
-  Filter,
-  Users,
-  TrendingUp,
-  Lock,
-} from "lucide-react";
-import CreatePostModal from "./CreatePostModal";
-import PostDetailModal from "./PostDetailModal";
-import { useAuth } from "@/contexts/AuthContext";
-import AuthModal from "@/components/auth/AuthModal";
+// Legacy DiscussionForum - redirects to Enhanced version for better responsive design and CRUD integration
+import React from "react";
+import EnhancedDiscussionForum from "./EnhancedDiscussionForum";
 
 const initialForumPosts = [
   {
