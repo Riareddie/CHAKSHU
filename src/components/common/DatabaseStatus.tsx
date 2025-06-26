@@ -196,21 +196,18 @@ export function DatabaseStatus({
           </Alert>
         )}
 
-        {autoFixResult && (
-          <Alert variant={autoFixResult.success ? "default" : "destructive"}>
+        {autoFixResult &&
+          !autoFixResult.success &&
+          hasInfiniteRecursionError && (
+            <div className="mt-4">
+              <MigrationInstructions />
+            </div>
+          )}
+
+        {autoFixResult && autoFixResult.success && (
+          <Alert>
             <AlertDescription>
-              {autoFixResult.success ? (
-                <span className="text-green-600">
-                  ✓ {autoFixResult.message}
-                </span>
-              ) : (
-                <div>
-                  <strong>Fix Instructions:</strong>
-                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded whitespace-pre-wrap">
-                    {autoFixResult.message}
-                  </pre>
-                </div>
-              )}
+              <span className="text-green-600">✓ {autoFixResult.message}</span>
             </AlertDescription>
           </Alert>
         )}
