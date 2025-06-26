@@ -481,7 +481,19 @@ const ReportsManagement = () => {
 
           {/* Reports List */}
           <div className="space-y-4">
-            {filteredReports.length === 0 ? (
+            {loading ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Loader2 className="h-12 w-12 text-gray-300 mx-auto mb-4 animate-spin" />
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    Loading your reports...
+                  </h3>
+                  <p className="text-gray-500">
+                    Please wait while we fetch your fraud reports
+                  </p>
+                </CardContent>
+              </Card>
+            ) : filteredReports.length === 0 ? (
               <Card>
                 <CardContent className="p-12 text-center">
                   <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
