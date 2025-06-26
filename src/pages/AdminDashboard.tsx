@@ -40,6 +40,10 @@ const AdminDashboard = () => {
           <AdminOverviewStats />
         </div>
 
+        <div className="mb-6">
+          <DatabaseStatus showDetails={true} />
+        </div>
+
         <Tabs defaultValue="reports" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6 lg:grid-cols-14">
             <TabsTrigger value="reports">Reports</TabsTrigger>
