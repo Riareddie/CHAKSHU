@@ -384,32 +384,83 @@ class ReportsService extends DatabaseService {
    * Create new report with validation
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
-    // Validate required fields
-    if (!report.title || !report.description || !report.fraud_type) {
+    // Enhanced validation for required fields
+    const errors = [];
+
+    if (!report.title || report.title.trim() === "") {
+      errors.push("Title is required");
+    }
+
+    if (
+      !report.description ||
+      report.description.trim() === "" ||
+      report.description.trim().length < 10
+    ) {
+      errors.push("Description must be at least 10 characters long");
+    }
+
+    if (!report.fraud_type || report.fraud_type.trim() === "") {
+      errors.push("Fraud type is required");
+    }
+
+    if (errors.length > 0) {
       return {
         data: null,
-        error: "Title, description, and fraud type are required",
+        error: errors.join(", "),
         success: false,
       };
     }
 
-    // Mock implementation
-    const newReport = {
-      id: Date.now().toString(),
-      ...report,
-      status: report.status || "pending",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      amount_involved: report.amount_involved || null,
-      currency: report.currency || "INR",
-    };
+    try {
+      // Mock implementation with enhanced data structure
+      const newReport = {
+        id: `report_${Date.now()}`,
+        user_id: report.user_id || "anonymous",
+        title: report.title.trim(),
+        description: report.description.trim(),
+        fraud_type: report.fraud_type,
+        status: report.status || "pending",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        amount_involved: report.amount_involved || null,
+        currency: report.currency || "INR",
+        incident_date: report.incident_date || new Date().toISOString(),
+        // Additional fields for compatibility
+        report_type: report.report_type || "call",
+        fraudulent_number: report.fraudulent_number || null,
+        fraud_category: report.fraud_category || report.fraud_type,
+        evidence_urls: report.evidence_urls || [],
+        priority: report.priority || "medium",
+        city: report.city || null,
+        state: report.state || null,
+        country: "India",
+        authority_action: null,
+        authority_comments: null,
+        contact_info: null,
+        estimated_loss: report.amount_involved || null,
+        latitude: null,
+        longitude: null,
+        location_info: null,
+        recovery_amount: null,
+        withdrawal_reason: null,
+        withdrawn_at: null,
+      };
 
-    return Promise.resolve({
-      data: newReport,
-      error: null,
-      success: true,
-      message: "Report created successfully (demo)",
-    });
+      return Promise.resolve({
+        data: newReport,
+        error: null,
+        success: true,
+        message:
+          "Report submitted successfully! Your report ID is " + newReport.id,
+      });
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error ? error.message : "Failed to create report",
+        success: false,
+      };
+    }
   }
   /**
    * Update report with change tracking
