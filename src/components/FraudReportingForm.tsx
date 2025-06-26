@@ -647,6 +647,13 @@ const FraudReportingForm = () => {
         </div>
       </div>
 
+      {/* Database Configuration Error */}
+      {hasDatabaseError && (
+        <div className="mb-6">
+          <DatabaseStatus showDetails={true} />
+        </div>
+      )}
+
       {/* Error Alert */}
       {submitError && (
         <Alert variant="destructive" className="mb-6">
