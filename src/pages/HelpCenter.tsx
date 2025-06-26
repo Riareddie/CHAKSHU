@@ -94,7 +94,7 @@ const HelpCenter = () => {
               <ChatbotInterface />
             </TabsContent>
 
-            <TabsContent value="faq" className="mt-6">
+            <TabsContent value="faq" className="mt-6" id="faq">
               <FAQSection />
             </TabsContent>
 
