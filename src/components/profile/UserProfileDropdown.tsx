@@ -105,6 +105,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
         align={isRTL ? "start" : "end"}
         role="menu"
         aria-label={t.accessibility?.userMenu || "User menu"}
+        sideOffset={5}
       >
         {/* User Info Header */}
         <div
