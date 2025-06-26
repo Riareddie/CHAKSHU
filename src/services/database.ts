@@ -174,30 +174,21 @@ class ReportsService extends DatabaseService {
     page: number = 1,
     limit: number = 10,
     sortBy: string = "created_at",
-    sortOrder: "asc" | "desc" = "desc",
-  ): Promise<
-    ServiceResponse<{ reports: Report[]; total: number; page_info: any }>
-  > {
+    sortOrder: "asc" | "desc" = "desc"
+  ): Promise<ServiceResponse<{ reports: Report[]; total: number; page_info: any }>> {
     // Return mock data since reports table might not exist yet
     const mockReports = [
       {
         id: "1",
         user_id: filters.user_id || "user1",
         title: "UPI Fraud Alert - Suspicious Transaction",
-        description:
-          "Received fraudulent UPI payment request claiming to be from bank",
+        description: "Received fraudulent UPI payment request claiming to be from bank",
         fraud_type: "phishing",
         status: "under_review",
         amount_involved: 25000,
-        incident_date: new Date(
-          Date.now() - 2 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        created_at: new Date(
-          Date.now() - 2 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date(
-          Date.now() - 1 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        incident_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         state: "Maharashtra",
         city: "Mumbai",
         currency: "INR",
@@ -206,20 +197,13 @@ class ReportsService extends DatabaseService {
         id: "2",
         user_id: filters.user_id || "user1",
         title: "Investment Scam - Fake Crypto Platform",
-        description:
-          "Scammers created fake cryptocurrency investment platform promising high returns",
+        description: "Scammers created fake cryptocurrency investment platform promising high returns",
         fraud_type: "investment_scam",
         status: "resolved",
         amount_involved: 50000,
-        incident_date: new Date(
-          Date.now() - 7 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        created_at: new Date(
-          Date.now() - 7 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date(
-          Date.now() - 3 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        incident_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         state: "Karnataka",
         city: "Bangalore",
         currency: "INR",
@@ -228,20 +212,13 @@ class ReportsService extends DatabaseService {
         id: "3",
         user_id: filters.user_id || "user1",
         title: "Romance Scam - Dating App Fraud",
-        description:
-          "Met someone on dating app who asked for money for emergency",
+        description: "Met someone on dating app who asked for money for emergency",
         fraud_type: "romance_scam",
         status: "pending",
         amount_involved: 15000,
-        incident_date: new Date(
-          Date.now() - 1 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        created_at: new Date(
-          Date.now() - 1 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date(
-          Date.now() - 1 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        incident_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         state: "Delhi",
         city: "New Delhi",
         currency: "INR",
@@ -252,33 +229,25 @@ class ReportsService extends DatabaseService {
     let filteredReports = mockReports;
 
     if (filters.status) {
-      filteredReports = filteredReports.filter(
-        (r) => r.status === filters.status,
-      );
+      filteredReports = filteredReports.filter(r => r.status === filters.status);
     }
     if (filters.fraud_type) {
-      filteredReports = filteredReports.filter(
-        (r) => r.fraud_type === filters.fraud_type,
-      );
+      filteredReports = filteredReports.filter(r => r.fraud_type === filters.fraud_type);
     }
     if (filters.user_id) {
-      filteredReports = filteredReports.filter(
-        (r) => r.user_id === filters.user_id,
-      );
+      filteredReports = filteredReports.filter(r => r.user_id === filters.user_id);
     }
     if (filters.location) {
-      filteredReports = filteredReports.filter(
-        (r) =>
-          r.state?.toLowerCase().includes(filters.location!.toLowerCase()) ||
-          r.city?.toLowerCase().includes(filters.location!.toLowerCase()),
+      filteredReports = filteredReports.filter(r =>
+        r.state?.toLowerCase().includes(filters.location!.toLowerCase()) ||
+        r.city?.toLowerCase().includes(filters.location!.toLowerCase())
       );
     }
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      filteredReports = filteredReports.filter(
-        (r) =>
-          r.title.toLowerCase().includes(searchTerm) ||
-          r.description.toLowerCase().includes(searchTerm),
+      filteredReports = filteredReports.filter(r =>
+        r.title.toLowerCase().includes(searchTerm) ||
+        r.description.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -297,8 +266,8 @@ class ReportsService extends DatabaseService {
           total_pages: totalPages,
           has_next: page < totalPages,
           has_prev: page > 1,
-          per_page: limit,
-        },
+          per_page: limit
+        }
       },
       error: null,
       success: true,
@@ -472,36 +441,36 @@ class ReportsService extends DatabaseService {
   /**
    * Get user's reports with stats
    */
-  async getUserReports(userId: string): Promise<
-    ServiceResponse<{
-      reports: Report[];
-      stats: {
-        total: number;
-        pending: number;
-        resolved: number;
-        rejected: number;
-      };
-    }>
-  > {
-    return this.executeQuery(async () => {
-      const result = await supabase
-        .from("reports")
-        .select("*")
-        .eq("user_id", userId)
-        .neq("status", "withdrawn")
-        .order("created_at", { ascending: false });
+  async getUserReports(userId: string): Promise<ServiceResponse<{
+    reports: Report[];
+    stats: {
+      total: number;
+      pending: number;
+      resolved: number;
+      rejected: number;
+    };
+  }>> {
+    // Use the same mock data from getAll but filter by user
+    const getAllResponse = await this.getAll({ user_id: userId }, 1, 100);
 
-      if (result.error) return result;
-
-      const reports = result.data || [];
+    if (getAllResponse.success && getAllResponse.data) {
+      const reports = getAllResponse.data.reports;
       const stats = {
         total: reports.length,
-        pending: reports.filter((r) => r.status === "pending").length,
-        resolved: reports.filter((r) => r.status === "resolved").length,
-        rejected: reports.filter((r) => r.status === "rejected").length,
+        pending: reports.filter(r => r.status === "pending").length,
+        resolved: reports.filter(r => r.status === "resolved").length,
+        rejected: reports.filter(r => r.status === "rejected").length,
       };
 
-      return { data: { reports, stats }, error: null };
+      return {
+        data: { reports, stats },
+        error: null,
+        success: true,
+      };
+    }
+
+    return getAllResponse;
+  }
     }, "fetch user reports");
   }
 
@@ -866,7 +835,11 @@ class UserProfilesService extends DatabaseService {
           .select("*")
           .eq("user_id", userId)
           .single(),
-        supabase.from("users").select("*").eq("id", userId).single(),
+        supabase
+          .from("users")
+          .select("*")
+          .eq("id", userId)
+          .single()
       ]);
 
       if (profileResult.data && statsResult.data) {
@@ -875,7 +848,7 @@ class UserProfilesService extends DatabaseService {
             ...profileResult.data,
             user: statsResult.data,
           },
-          error: null,
+          error: null
         };
       }
 
@@ -888,7 +861,7 @@ class UserProfilesService extends DatabaseService {
    */
   async updateProfile(
     userId: string,
-    updates: UserProfileUpdate,
+    updates: UserProfileUpdate
   ): Promise<ServiceResponse<UserProfile>> {
     return this.executeQuery(async () => {
       const result = await supabase
@@ -896,7 +869,7 @@ class UserProfilesService extends DatabaseService {
         .upsert({
           user_id: userId,
           ...updates,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .select()
         .single();
@@ -908,36 +881,20 @@ class UserProfilesService extends DatabaseService {
   /**
    * Get user activity stats
    */
-  async getUserStats(userId: string): Promise<
-    ServiceResponse<{
-      reports_count: number;
-      posts_count: number;
-      comments_count: number;
-      likes_received: number;
-      reputation_score: number;
-    }>
-  > {
+  async getUserStats(userId: string): Promise<ServiceResponse<{
+    reports_count: number;
+    posts_count: number;
+    comments_count: number;
+    likes_received: number;
+    reputation_score: number;
+  }>> {
     return this.executeQuery(async () => {
-      const [reportsResult, postsResult, commentsResult, profileResult] =
-        await Promise.all([
-          supabase
-            .from("reports")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", userId),
-          supabase
-            .from("community_posts")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", userId),
-          supabase
-            .from("community_comments")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", userId),
-          supabase
-            .from("user_profiles")
-            .select("reputation_score, total_likes_received")
-            .eq("user_id", userId)
-            .single(),
-        ]);
+      const [reportsResult, postsResult, commentsResult, profileResult] = await Promise.all([
+        supabase.from("reports").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("community_posts").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("community_comments").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("user_profiles").select("reputation_score, total_likes_received").eq("user_id", userId).single()
+      ]);
 
       return {
         data: {
@@ -947,7 +904,7 @@ class UserProfilesService extends DatabaseService {
           likes_received: profileResult.data?.total_likes_received || 0,
           reputation_score: profileResult.data?.reputation_score || 0,
         },
-        error: null,
+        error: null
       };
     }, "fetch user stats");
   }
