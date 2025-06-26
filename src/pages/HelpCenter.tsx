@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -29,6 +30,27 @@ import AuthGuard from "@/components/auth/AuthGuard";
 
 const HelpCenter = () => {
   const [activeTab, setActiveTab] = useState("chatbot");
+  const location = useLocation();
+
+  // Handle anchor links from footer
+  useEffect(() => {
+    if (location.hash) {
+      const anchor = location.hash.slice(1); // Remove the '#'
+      if (anchor === "faq") {
+        setActiveTab("faq");
+      } else if (anchor === "contact") {
+        setActiveTab("support");
+      }
+
+      // Smooth scroll to the element after a brief delay
+      setTimeout(() => {
+        const element = document.getElementById(anchor);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
+  }, [location.hash]);
 
   return (
     <AuthGuard message="Sign in to access personalized help, support tickets, analytics, and all help center features.">
