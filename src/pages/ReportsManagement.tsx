@@ -259,10 +259,8 @@ const ReportsManagement = () => {
     try {
       // Update in database
       const result = await reportsService.update(updatedReport.id, {
-        title: updatedReport.title,
         description: updatedReport.description,
-        amount_involved: updatedReport.amount || null,
-        // Add other fields as needed
+        // Add other updatable fields as needed
       });
 
       if (result.success) {
