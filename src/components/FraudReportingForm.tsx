@@ -47,6 +47,7 @@ const FraudReportingForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hasDatabaseError, setHasDatabaseError] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
   const { toast } = useToast();
