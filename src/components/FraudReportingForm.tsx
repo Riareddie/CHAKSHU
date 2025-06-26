@@ -323,6 +323,58 @@ const FraudReportingForm = () => {
 
       console.log("Starting report submission for user:", user.id);
 
+      // Ensure user exists in database before creating report
+      try {
+        const userCheckResult = await supabase
+          .from("users")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+
+        if (
+          userCheckResult.error &&
+          userCheckResult.error.code === "PGRST116"
+        ) {
+          // User doesn't exist in database, create them
+          console.log("User not found in database, creating user record...");
+          const { error: createUserError } = await supabase
+            .from("users")
+            .insert({
+              id: user.id,
+              email: user.email || "",
+              full_name:
+                user.user_metadata?.full_name ||
+                user.email?.split("@")[0] ||
+                "",
+              user_role: "citizen",
+              is_verified: false,
+              is_banned: false,
+            });
+
+          if (createUserError) {
+            console.error("Failed to create user:", createUserError);
+            throw new Error(
+              "Failed to create user account. Please contact support.",
+            );
+          }
+
+          console.log("User record created successfully");
+        } else if (userCheckResult.error) {
+          console.error("Error checking user:", userCheckResult.error);
+          throw new Error(
+            "Database error when verifying user. Please try again.",
+          );
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error; // Re-throw our custom errors
+        }
+        console.error("Unexpected error during user verification:", error);
+        throw new Error(
+          "Unexpected error during user verification. Please try again.",
+        );
+      }
+
       // Validate form data before proceeding
       if (!formData.fraudType) {
         throw new Error("Please select a fraud type");
