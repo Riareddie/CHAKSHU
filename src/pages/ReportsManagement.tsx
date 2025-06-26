@@ -68,8 +68,13 @@ const formatString = (
   str: string | null | undefined,
   fallback: string = "Unknown",
 ): string => {
-  if (!str || typeof str !== "string") return fallback;
-  return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  if (!str || typeof str !== "string" || str.trim() === "") return fallback;
+  try {
+    return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  } catch (error) {
+    console.warn("Error formatting string:", str, error);
+    return fallback;
+  }
 };
 
 // Convert database report to display format
