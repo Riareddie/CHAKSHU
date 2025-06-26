@@ -455,34 +455,26 @@ class ReportsService extends DatabaseService {
     page: number = 1,
     limit: number = 10,
   ): Promise<ServiceResponse<{ reports: Report[]; total: number }>> {
-    const offset = (page - 1) * limit;
+    // Use the getAll method with search filter
+    const searchFilters = {
+      ...filters,
+      search: query,
+    };
 
-    return this.executeQuery(async () => {
-      let dbQuery = supabase
-        .from("reports")
-        .select("*", { count: "exact" })
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+    const result = await this.getAll(searchFilters, page, limit);
 
-      // Apply additional filters
-      if (filters.fraud_type) {
-        dbQuery = dbQuery.eq("fraud_type", filters.fraud_type);
-      }
-      if (filters.status) {
-        dbQuery = dbQuery.eq("status", filters.status);
-      }
-
-      const result = await dbQuery;
-
+    if (result.success && result.data) {
       return {
         data: {
-          reports: result.data || [],
-          total: result.count || 0,
+          reports: result.data.reports,
+          total: result.data.total,
         },
-        error: result.error,
+        error: null,
+        success: true,
       };
-    }, "search reports");
+    }
+
+    return result;
   }
 }
 
