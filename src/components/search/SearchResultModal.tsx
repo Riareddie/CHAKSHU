@@ -354,7 +354,8 @@ const SearchResultModal: React.FC<SearchResultModalProps> = ({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-6">
+        <ScrollArea className="flex-1 max-h-[calc(90vh-120px)]">
+          <Tabs defaultValue="details" className="w-full">
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="details">Details</TabsTrigger>
