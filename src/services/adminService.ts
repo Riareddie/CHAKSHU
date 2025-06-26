@@ -332,7 +332,10 @@ class AdminService {
         .from("user_analytics_preferences")
         .select("*", { count: "exact", head: true });
 
-      if (usersError) console.warn("Could not fetch user count:", usersError);
+      if (usersError) {
+        console.error("User count query error:", usersError);
+        // Don't throw here, just log and continue with 0 users
+      }
 
       // Calculate statistics
       const totalReports = reports?.length || 0;
