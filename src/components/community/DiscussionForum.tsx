@@ -2,7 +2,12 @@
 import React from "react";
 import EnhancedDiscussionForum from "./EnhancedDiscussionForum";
 
-const initialForumPosts = [
+const DiscussionForum = () => {
+  // Use the enhanced version for better responsive design and CRUD operations
+  return <EnhancedDiscussionForum />;
+};
+
+export default DiscussionForum;
   {
     id: 1,
     title:
