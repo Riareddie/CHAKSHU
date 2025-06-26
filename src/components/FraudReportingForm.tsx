@@ -58,6 +58,9 @@ const FraudReportingForm = () => {
     amount: undefined,
     location: "",
     additionalDetails: "",
+    title: "",
+    city: "",
+    state: "",
   });
 
   // Form validation schema
