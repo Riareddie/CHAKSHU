@@ -158,6 +158,11 @@ class AdminService {
           : `Unknown error during ${operation}`;
       console.error(`Admin ${operation} exception:`, error);
 
+      // Log more detailed error information
+      if (error && typeof error === "object") {
+        console.error("Error details:", JSON.stringify(error, null, 2));
+      }
+
       return {
         data: null,
         error: message,
