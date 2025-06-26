@@ -285,12 +285,14 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       if (response.success && response.data) {
         dispatch({ type: "SET_STATS_SUCCESS", payload: response.data });
       } else {
+        console.error("Admin stats fetch failed:", response.error);
         dispatch({
           type: "SET_STATS_ERROR",
           payload: response.error || "Failed to fetch stats",
         });
       }
     } catch (error) {
+      console.error("Admin stats fetch exception:", error);
       dispatch({ type: "SET_STATS_ERROR", payload: "Failed to fetch stats" });
     }
   }, []);
