@@ -348,39 +348,33 @@ class ReportsService extends DatabaseService {
    * Create new report with validation
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(async () => {
-      // Validate required fields
-      if (!report.title || !report.description || !report.fraud_type) {
-        throw new Error("Title, description, and fraud type are required");
-      }
+    // Validate required fields
+    if (!report.title || !report.description || !report.fraud_type) {
+      return {
+        data: null,
+        error: "Title, description, and fraud type are required",
+        success: false,
+      };
+    }
 
-      const result = await supabase
-        .from("reports")
-        .insert({
-          ...report,
-          status: report.status || "pending",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+    // Mock implementation
+    const newReport = {
+      id: Date.now().toString(),
+      ...report,
+      status: report.status || "pending",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      amount_involved: report.amount_involved || null,
+      currency: report.currency || "INR",
+    };
 
-      // Create notification for user
-      if (result.data) {
-        await supabase.from("notifications").insert({
-          user_id: report.user_id,
-          title: "Report Created Successfully",
-          message: `Your fraud report "${report.title}" has been submitted and is being reviewed.`,
-          type: "success",
-          reference_id: result.data.id,
-          reference_type: "report",
-        });
-      }
-
-      return result;
-    }, "create report");
+    return Promise.resolve({
+      data: newReport,
+      error: null,
+      success: true,
+      message: "Report created successfully (demo)",
+    });
   }
-
   /**
    * Update report with change tracking
    */
