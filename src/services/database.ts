@@ -135,7 +135,7 @@ class DatabaseService {
    */
   async healthCheck(): Promise<ServiceResponse<boolean>> {
     return this.executeQuery(
-      () => supabase.from("reports").select("id").limit(1),
+      () => supabase.from("fraud_reports").select("id").limit(1),
       "health check",
     );
   }
