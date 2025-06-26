@@ -90,8 +90,8 @@ export function useAdminStats() {
 
       // Fetch reports statistics
       const { data: reportsData, error: reportsError } = await supabase
-        .from("reports")
-        .select("status, amount_involved, created_at");
+        .from("fraud_reports")
+        .select("status, created_at");
 
       if (reportsError) throw reportsError;
 
