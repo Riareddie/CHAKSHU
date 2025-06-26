@@ -151,22 +151,23 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
           <CardContent className="space-y-4">
             <div>
               <Label>Date & Time of Incident *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal mt-1",
-                      !formData.dateTime && "text-muted-foreground",
-                      hasError("dateTime") && "border-red-500",
-                    )}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {formData.dateTime
-                      ? format(formData.dateTime, "PPP")
-                      : "Select date"}
-                  </Button>
-                </PopoverTrigger>
+              <div className="flex gap-2 mt-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "flex-1 justify-start text-left font-normal",
+                        !formData.dateTime && "text-muted-foreground",
+                        hasError("dateTime") && "border-red-500",
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {formData.dateTime
+                        ? format(formData.dateTime, "PPP")
+                        : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <CalendarComponent
                     mode="single"
@@ -214,14 +215,10 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                   <Input
                     id="incidentTime"
                     type="time"
-                    value={
-                      formData.dateTime
-                        ? format(formData.dateTime, "HH:mm")
-                        : ""
-                    }
+                    value={formData.dateTime ? format(formData.dateTime, "HH:mm") : ""}
                     onChange={(e) => {
                       if (formData.dateTime && e.target.value) {
-                        const [hours, minutes] = e.target.value.split(":");
+                        const [hours, minutes] = e.target.value.split(':');
                         const newDate = new Date(formData.dateTime);
                         newDate.setHours(parseInt(hours), parseInt(minutes));
                         onUpdateData("dateTime", newDate);
