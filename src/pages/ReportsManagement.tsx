@@ -47,7 +47,7 @@ import EditReportModal from "@/components/reports/EditReportModal";
 import { reportsService, type Report } from "@/services/database";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface Report {
+interface DisplayReport {
   id: string;
   type: string;
   title: string;
@@ -63,28 +63,30 @@ interface Report {
   evidenceCount: number;
 }
 
-// Convert shared mock data to ReportsManagement format
-const convertToReportsFormat = (): Report[] => {
-  return mockReportsData.map((report, index) => ({
-    id: (index + 1).toString(),
-    type: report.type,
-    title: report.title || report.description,
-    description: report.description,
-    phoneNumber: report.phoneNumber || "+91-9876543210",
-    location: report.location,
-    amount: report.amount,
-    status: report.status.toLowerCase().replace(" ", "_") as Report["status"],
-    severity:
-      report.severity || (report.impact.toLowerCase() as Report["severity"]),
-    submittedAt: report.submittedAt || new Date(report.date),
-    updatedAt: report.updatedAt || new Date(report.date),
-    referenceId:
-      report.referenceId || `FR-2024-${String(index + 1).padStart(6, "0")}`,
-    evidenceCount: report.evidenceCount || Math.floor(Math.random() * 5) + 1,
-  }));
-};
+// Convert database report to display format
+const convertToDisplayFormat = (report: Report): DisplayReport => {
+  const contactInfo = (report.contact_info as any) || {};
+  const location =
+    [report.city, report.state].filter(Boolean).join(", ") || "Unknown";
 
-const mockReports: Report[] = convertToReportsFormat();
+  return {
+    id: report.id,
+    type: report.fraud_type
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase()),
+    title: report.title,
+    description: report.description,
+    phoneNumber: contactInfo.phone_number || "Not provided",
+    location: location,
+    amount: report.amount_involved || undefined,
+    status: report.status as DisplayReport["status"],
+    severity: "medium", // Default severity, can be enhanced with additional data
+    submittedAt: new Date(report.created_at),
+    updatedAt: new Date(report.updated_at),
+    referenceId: report.id,
+    evidenceCount: 0, // Will be updated when evidence service is implemented
+  };
+};
 
 const ReportsManagement = () => {
   const [reports, setReports] = useState<Report[]>(mockReports);
