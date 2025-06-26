@@ -320,7 +320,12 @@ class AdminService {
         .from("reports")
         .select("status, amount_involved, created_at");
 
-      if (reportsError) throw reportsError;
+      if (reportsError) {
+        console.error("Reports query error:", reportsError);
+        throw new Error(
+          `Reports query failed: ${reportsError.message || reportsError.code || "Unknown error"}`,
+        );
+      }
 
       // Fetch user count
       const { count: usersCount, error: usersError } = await supabase
