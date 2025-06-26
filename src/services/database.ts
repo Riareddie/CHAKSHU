@@ -212,7 +212,7 @@ class ReportsService extends DatabaseService {
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
     return this.executeQuery(
-      () => supabase.from("reports").insert(report).select().single(),
+      () => supabase.from("fraud_reports").insert(report).select().single(),
       "create report",
     );
   }
