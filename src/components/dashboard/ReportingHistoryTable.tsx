@@ -42,22 +42,36 @@ interface MockReport {
 
 // Convert database report to mock report format for compatibility
 const convertToMockFormat = (report: DatabaseReport): MockReport => {
+  // Helper function to safely format strings
+  const formatString = (
+    str: string | null | undefined,
+    fallback: string = "Unknown",
+  ) => {
+    if (!str) return fallback;
+    return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
   return {
-    id: report.id,
-    date: new Date(report.created_at).toLocaleDateString(),
-    type: (report.fraud_type || report.report_type || "unknown")
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase()),
-    description: report.description,
-    status: (report.status || "pending")
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase()),
-    impact: (report.priority || report.severity || "Medium").replace(
-      /\b\w/g,
-      (l) => l.toUpperCase(),
+    id: report.id || "unknown",
+    date: report.created_at
+      ? new Date(report.created_at).toLocaleDateString()
+      : "Unknown",
+    type: formatString(
+      report.fraud_type || (report as any).report_type,
+      "Unknown",
+    ),
+    description: report.description || "No description provided",
+    status: formatString(report.status, "Pending"),
+    impact: formatString(
+      (report as any).priority || (report as any).severity,
+      "Medium",
     ),
     amount: report.amount_involved || undefined,
-    location: report.state || report.city || report.location || "Not specified",
+    location:
+      report.state ||
+      report.city ||
+      (report as any).location ||
+      "Not specified",
   };
 };
 
