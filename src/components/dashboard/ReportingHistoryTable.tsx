@@ -85,8 +85,8 @@ const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
       setLoading(true);
       try {
         const result = await reportsService.getUserReports(user.id);
-        if (result.success && result.data) {
-          const mockReports = result.data.map(convertToMockFormat);
+        if (result.success && result.data && result.data.reports) {
+          const mockReports = result.data.reports.map(convertToMockFormat);
           setAllReports(mockReports);
         } else {
           console.error("Failed to load reports:", result.error);
