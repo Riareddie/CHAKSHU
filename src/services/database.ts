@@ -151,10 +151,8 @@ class ReportsService extends DatabaseService {
   async getAll(
     filters: {
       status?: string;
-      fraud_type?: string;
+      fraud_category?: string;
       user_id?: string;
-      city?: string;
-      state?: string;
       date_from?: string;
       date_to?: string;
     } = {},
@@ -165,7 +163,7 @@ class ReportsService extends DatabaseService {
 
     return this.executeQuery(async () => {
       let query = supabase
-        .from("reports")
+        .from("fraud_reports")
         .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
@@ -174,17 +172,11 @@ class ReportsService extends DatabaseService {
       if (filters.status) {
         query = query.eq("status", filters.status);
       }
-      if (filters.fraud_type) {
-        query = query.eq("fraud_type", filters.fraud_type);
+      if (filters.fraud_category) {
+        query = query.eq("fraud_category", filters.fraud_category);
       }
       if (filters.user_id) {
         query = query.eq("user_id", filters.user_id);
-      }
-      if (filters.city) {
-        query = query.eq("city", filters.city);
-      }
-      if (filters.state) {
-        query = query.eq("state", filters.state);
       }
       if (filters.date_from) {
         query = query.gte("created_at", filters.date_from);
