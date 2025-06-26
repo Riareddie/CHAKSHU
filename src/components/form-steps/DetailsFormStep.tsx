@@ -206,6 +206,34 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
                   {errors.dateTime}
                 </p>
               )}
+
+              {/* Time picker */}
+              {formData.dateTime && (
+                <div className="mt-3">
+                  <Label htmlFor="incidentTime">Time (Optional)</Label>
+                  <Input
+                    id="incidentTime"
+                    type="time"
+                    value={
+                      formData.dateTime
+                        ? format(formData.dateTime, "HH:mm")
+                        : ""
+                    }
+                    onChange={(e) => {
+                      if (formData.dateTime && e.target.value) {
+                        const [hours, minutes] = e.target.value.split(":");
+                        const newDate = new Date(formData.dateTime);
+                        newDate.setHours(parseInt(hours), parseInt(minutes));
+                        onUpdateData("dateTime", newDate);
+                      }
+                    }}
+                    className="mt-1 w-32"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Approximate time when the incident occurred
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
