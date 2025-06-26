@@ -962,12 +962,132 @@ class NotificationsService extends DatabaseService {
   }
 }
 
+/**
+ * Enhanced Evidence Service
+ */
+class EvidenceService extends DatabaseService {
+  /**
+   * Get report evidence
+   */
+  async getReportEvidence(
+    reportId: string,
+  ): Promise<ServiceResponse<ReportEvidence[]>> {
+    return this.executeQuery(
+      () =>
+        supabase
+          .from("report_evidence")
+          .select("*")
+          .eq("report_id", reportId)
+          .order("uploaded_at", { ascending: false }),
+      "fetch report evidence",
+    );
+  }
+
+  /**
+   * Upload evidence file
+   */
+  async uploadFile(
+    file: File,
+    reportId: string,
+    userId: string,
+  ): Promise<ServiceResponse<{ fileUrl: string; evidence: ReportEvidence }>> {
+    try {
+      if (isDemoMode) {
+        return {
+          data: null,
+          error: "File upload not available in demo mode",
+          success: false,
+        };
+      }
+
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${reportId}/${Date.now()}.${fileExt}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("evidence-files")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("evidence-files").getPublicUrl(fileName);
+
+      // Save evidence record
+      const evidenceData: ReportEvidenceInsert = {
+        report_id: reportId,
+        file_name: file.name,
+        file_path: uploadData.path,
+        file_size: file.size,
+        file_type: fileExt || null,
+        mime_type: file.type || null,
+        uploaded_by: userId,
+      };
+
+      const { data: evidence, error: evidenceError } = await supabase
+        .from("report_evidence")
+        .insert(evidenceData)
+        .select()
+        .single();
+
+      if (evidenceError) throw evidenceError;
+
+      return {
+        data: {
+          fileUrl: publicUrl,
+          evidence: evidence,
+        },
+        error: null,
+        success: true,
+        message: "File uploaded successfully",
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "File upload failed";
+      return {
+        data: null,
+        error: message,
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Delete evidence
+   */
+  async delete(id: string): Promise<ServiceResponse<boolean>> {
+    return this.executeQuery(async () => {
+      // Get evidence record first
+      const { data: evidence, error: fetchError } = await supabase
+        .from("report_evidence")
+        .select("file_path")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) return { error: fetchError };
+
+      // Delete file from storage
+      if (evidence) {
+        await supabase.storage
+          .from("evidence-files")
+          .remove([evidence.file_path]);
+      }
+
+      // Delete evidence record
+      return await supabase.from("report_evidence").delete().eq("id", id);
+    }, "delete evidence");
+  }
+}
+
 // Export enhanced service instances
 export const reportsService = new ReportsService();
 export const communityPostsService = new CommunityPostsService();
 export const communityCommentsService = new CommunityCommentsService();
 export const userProfilesService = new UserProfilesService();
 export const notificationsService = new NotificationsService();
+export const evidenceService = new EvidenceService();
 
 // Export database service for health checks
 export const databaseService = new DatabaseService();
