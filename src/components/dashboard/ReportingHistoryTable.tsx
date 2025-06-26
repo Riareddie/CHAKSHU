@@ -42,19 +42,41 @@ interface MockReport {
 
 // Convert database report to mock report format for compatibility
 const convertToMockFormat = (report: DatabaseReport): MockReport => {
+  // Helper function to safely format strings
+  const formatString = (
+    str: string | null | undefined,
+    fallback: string = "Unknown",
+  ) => {
+    if (!str || typeof str !== "string" || str.trim() === "") return fallback;
+    try {
+      return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    } catch (error) {
+      console.warn("Error formatting string:", str, error);
+      return fallback;
+    }
+  };
+
   return {
-    id: report.id,
-    date: new Date(report.created_at).toLocaleDateString(),
-    type: report.report_type
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase()),
-    description: report.description,
-    status: report.status
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase()),
-    impact: report.priority.replace(/\b\w/g, (l) => l.toUpperCase()), // Use priority as impact
-    amount: undefined, // Not stored in fraud_reports schema
-    location: "Not specified", // Not stored in this schema
+    id: report.id || "unknown",
+    date: report.created_at
+      ? new Date(report.created_at).toLocaleDateString()
+      : "Unknown",
+    type: formatString(
+      report.fraud_type || (report as any).report_type,
+      "Unknown",
+    ),
+    description: report.description || "No description provided",
+    status: formatString(report.status, "Pending"),
+    impact: formatString(
+      (report as any).priority || (report as any).severity,
+      "Medium",
+    ),
+    amount: report.amount_involved || undefined,
+    location:
+      report.state ||
+      report.city ||
+      (report as any).location ||
+      "Not specified",
   };
 };
 
@@ -85,8 +107,8 @@ const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
       setLoading(true);
       try {
         const result = await reportsService.getUserReports(user.id);
-        if (result.success && result.data) {
-          const mockReports = result.data.map(convertToMockFormat);
+        if (result.success && result.data && result.data.reports) {
+          const mockReports = result.data.reports.map(convertToMockFormat);
           setAllReports(mockReports);
         } else {
           console.error("Failed to load reports:", result.error);
@@ -309,8 +331,8 @@ const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
     setIsRefreshing(true);
     try {
       const result = await reportsService.getUserReports(user.id);
-      if (result.success && result.data) {
-        const mockReports = result.data.map(convertToMockFormat);
+      if (result.success && result.data && result.data.reports) {
+        const mockReports = result.data.reports.map(convertToMockFormat);
         setAllReports(mockReports);
         toast({
           title: "Data Refreshed",
