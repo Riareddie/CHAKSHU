@@ -304,26 +304,52 @@ const FraudReportingForm = () => {
     setSubmitError(null);
 
     try {
-      // Comprehensive form validation
-      const validationErrors = [];
+      // First validate the current step
+      const isStepValid = validateCurrentStep();
+      if (!isStepValid) {
+        setSubmitError(
+          "Please correct the highlighted errors before submitting.",
+        );
+        toast({
+          title: "Validation Failed",
+          description: "Please check the form for errors and try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
-      if (!formData.fraudType) validationErrors.push("fraud type");
-      if (!formData.category) validationErrors.push("category");
-      if (!formData.phoneNumber || formData.phoneNumber.length < 10)
-        validationErrors.push("valid phone number");
-      if (
-        !formData.messageContent ||
-        formData.messageContent.trim().length < 10
-      )
-        validationErrors.push("detailed description (minimum 10 characters)");
-      if (!formData.dateTime) validationErrors.push("incident date");
+      // Then validate the entire form
+      const isFormValid = validateForm(formData);
 
-      if (validationErrors.length > 0) {
-        const errorMessage = `Please provide: ${validationErrors.join(", ")}`;
+      if (!isFormValid) {
+        // Create specific error message based on which fields are invalid
+        const errorFields = Object.keys(errors);
+        let errorMessage = "Please correct the following errors: ";
+
+        if (errorFields.includes("phoneNumber")) {
+          errorMessage += "invalid phone number, ";
+        }
+        if (errorFields.includes("messageContent")) {
+          errorMessage += "description too short or missing, ";
+        }
+        if (errorFields.includes("dateTime")) {
+          errorMessage += "invalid date, ";
+        }
+        if (errorFields.includes("fraudType")) {
+          errorMessage += "fraud type not selected, ";
+        }
+        if (errorFields.includes("category")) {
+          errorMessage += "category not selected, ";
+        }
+
+        // Remove trailing comma and space
+        errorMessage = errorMessage.replace(/, $/, "");
+
         setSubmitError(errorMessage);
         toast({
           title: "Validation Failed",
-          description: errorMessage,
+          description: "Please check the highlighted fields and try again.",
           variant: "destructive",
         });
         setIsSubmitting(false);
@@ -353,32 +379,20 @@ const FraudReportingForm = () => {
         return categoryMap[category] || "other";
       };
 
-      // Generate title from fraud type and category
-      const generateTitle = (fraudType: string, category: string): string => {
-        return `${fraudType} - ${category} Report`;
-      };
-
-      // Map form data to database schema that matches service expectations
+      // Map form data to database schema
       const reportData: ReportInsert = {
         user_id: user.id,
-        title:
-          formData.title ||
-          generateTitle(formData.fraudType, formData.category),
-        description: formData.messageContent,
-        fraud_type: getFraudCategory(formData.category), // Use mapped category as fraud_type
-        incident_date:
-          formData.dateTime?.toISOString() || new Date().toISOString(),
-        amount_involved: formData.amount || null,
-        status: "pending",
-        // Additional fields for compatibility
         report_type: getReportType(formData.fraudType),
         fraudulent_number: formData.phoneNumber,
+        incident_date:
+          formData.dateTime?.toISOString().split("T")[0] ||
+          new Date().toISOString().split("T")[0],
+        incident_time: formData.dateTime?.toTimeString().split(" ")[0] || null,
+        description: formData.messageContent,
         fraud_category: getFraudCategory(formData.category),
         evidence_urls: [],
+        status: "pending",
         priority: "medium",
-        city: formData.city || "",
-        state: formData.state || "",
-        currency: "INR",
       };
 
       // Submit report to database
@@ -402,63 +416,37 @@ const FraudReportingForm = () => {
       setSubmitSuccess(true);
 
       toast({
-        title: "Report Submitted Successfully! 🎉",
-        description: `Your fraud report has been submitted successfully. Report ID: ${createdReport.id}. You will receive updates via email.`,
-        duration: 8000,
+        title: "Report Submitted Successfully",
+        description: `Your fraud report has been submitted with ID: ${createdReport.id}`,
       });
 
-      // Clear form and draft after a short delay to show success state
-      setTimeout(() => {
-        setFormData({
-          fraudType: "",
-          category: "",
-          phoneNumber: "",
-          messageContent: "",
-          dateTime: null,
-          files: [],
-          amount: undefined,
-          location: "",
-          additionalDetails: "",
-          title: "",
-          city: "",
-          state: "",
-        });
-        localStorage.removeItem("fraud-report-draft");
-        setCurrentStep(1);
-        setSubmitSuccess(false);
-        setSubmitError(null);
-      }, 2000);
+      // Clear form and draft
+      setFormData({
+        fraudType: "",
+        category: "",
+        phoneNumber: "",
+        messageContent: "",
+        dateTime: null,
+        files: [],
+        amount: undefined,
+        location: "",
+        additionalDetails: "",
+        title: "",
+        city: "",
+        state: "",
+      });
+      localStorage.removeItem("fraud-report-draft");
+      setCurrentStep(1);
     } catch (error) {
-      let errorMessage =
-        "An unexpected error occurred while submitting your report.";
-
-      if (error instanceof Error) {
-        if (
-          error.message.includes("network") ||
-          error.message.includes("fetch")
-        ) {
-          errorMessage =
-            "Network error. Please check your internet connection and try again.";
-        } else if (
-          error.message.includes("validation") ||
-          error.message.includes("required")
-        ) {
-          errorMessage = "Please check all required fields and try again.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      setSubmitError(errorMessage);
+      setSubmitError(
+        "An unexpected error occurred while submitting your report. Please try again.",
+      );
       toast({
         title: "Submission Failed",
         description:
-          errorMessage + " If the problem persists, please contact support.",
+          "Failed to submit report. Please try again or contact support.",
         variant: "destructive",
-        duration: 10000,
       });
-
-      console.error("Report submission error:", error);
     } finally {
       setIsSubmitting(false);
     }

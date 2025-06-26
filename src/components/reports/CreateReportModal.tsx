@@ -20,9 +20,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { reportsService } from "@/services/database";
-import { Loader2 } from "lucide-react";
 import { Save, Lock } from "lucide-react";
 
 interface CreateReportModalProps {
@@ -117,16 +114,13 @@ const CreateReportModal = ({
         };
       }
 
-      const result = await reportsService.create(reportData);
+      const { error } = await supabase.from("fraud_reports").insert(reportData);
 
-      if (!result.success) {
-        throw new Error(result.error || "Failed to create report");
-      }
+      if (error) throw error;
 
       toast({
         title: "Report Created",
-        description:
-          result.message || "Your fraud report has been submitted successfully",
+        description: "Your fraud report has been submitted successfully",
       });
 
       // Reset form
@@ -146,7 +140,7 @@ const CreateReportModal = ({
     } catch (error: any) {
       toast({
         title: "Submission Failed",
-        description: error.message || "An unexpected error occurred",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
