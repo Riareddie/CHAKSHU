@@ -310,8 +310,15 @@ const FraudReportingForm = () => {
 
     setIsSubmitting(true);
     setSubmitError(null);
+    setHasDatabaseError(false);
 
     try {
+      // Verify user is still authenticated
+      if (!user?.id) {
+        throw new Error("User authentication expired. Please log in again.");
+      }
+
+      console.log("Starting report submission for user:", user.id);
       // First validate the current step
       const isStepValid = validateCurrentStep();
       if (!isStepValid) {
