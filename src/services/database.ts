@@ -202,6 +202,11 @@ class ReportsService extends DatabaseService {
         city: "Mumbai",
         currency: "INR",
         // Additional properties for compatibility
+        report_type: "call",
+        fraud_category: "phishing",
+        fraudulent_number: "+91-9876543210",
+        priority: "high",
+        evidence_urls: [],
         authority_action: null,
         authority_comments: null,
         contact_info: null,
