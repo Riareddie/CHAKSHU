@@ -15,12 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
 import { cn } from "@/lib/utils";
 import EnhancedFileUpload from "@/components/common/EnhancedFileUpload";
 import { formatCurrencyForInput, validateCurrencyInput } from "@/lib/currency";
