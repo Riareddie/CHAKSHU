@@ -325,7 +325,12 @@ class AdminService {
           .select("status, amount_involved, created_at");
 
         if (reportsError) {
-          console.error("Reports query error:", reportsError);
+          console.error("Reports query error:", {
+            message: reportsError.message,
+            details: reportsError.details,
+            hint: reportsError.hint,
+            code: reportsError.code,
+          });
           console.warn("Using empty reports data due to error");
         } else {
           reports = reportsData || [];
@@ -342,7 +347,12 @@ class AdminService {
           .select("*", { count: "exact", head: true });
 
         if (usersError) {
-          console.error("User count query error:", usersError);
+          console.error("User count query error:", {
+            message: usersError.message,
+            details: usersError.details,
+            hint: usersError.hint,
+            code: usersError.code,
+          });
           console.warn("Using 0 user count due to error");
         } else {
           usersCount = count || 0;
@@ -428,7 +438,12 @@ class AdminService {
         const result = await query;
 
         if (result.error) {
-          console.error("Reports for review query error:", result.error);
+          console.error("Reports for review query error:", {
+            message: result.error.message,
+            details: result.error.details,
+            hint: result.error.hint,
+            code: result.error.code,
+          });
           // Return empty result instead of throwing
           return {
             data: {
@@ -558,7 +573,12 @@ class AdminService {
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("User preferences query error:", error);
+          console.error("User preferences query error:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
           console.warn("Using empty user preferences due to error");
         } else {
           userPrefs = data || [];
@@ -576,7 +596,12 @@ class AdminService {
           .not("user_id", "is", null);
 
         if (error) {
-          console.error("Report counts query error:", error);
+          console.error("Report counts query error:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
           console.warn("Using empty report counts due to error");
         } else {
           reportCounts = data || [];
