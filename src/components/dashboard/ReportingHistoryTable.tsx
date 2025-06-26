@@ -29,6 +29,39 @@ interface ReportingHistoryTableProps {
   };
 }
 
+interface MockReport {
+  id: string;
+  date: string;
+  type: string;
+  description: string;
+  status: string;
+  impact: string;
+  amount?: number;
+  location: string;
+}
+
+// Convert database report to mock report format for compatibility
+const convertToMockFormat = (report: DatabaseReport): MockReport => {
+  const contactInfo = (report.contact_info as any) || {};
+  const location =
+    [report.city, report.state].filter(Boolean).join(", ") || "Unknown";
+
+  return {
+    id: report.id,
+    date: new Date(report.created_at).toLocaleDateString(),
+    type: report.fraud_type
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase()),
+    description: report.description,
+    status: report.status
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase()),
+    impact: "Medium", // Default impact
+    amount: report.amount_involved || undefined,
+    location: location,
+  };
+};
+
 const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
