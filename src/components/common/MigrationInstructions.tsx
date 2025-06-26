@@ -15,13 +15,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import DatabaseTestButton from "./DatabaseTestButton";
 import { useToast } from "@/hooks/use-toast";
 
 const migrationSQL = `-- Fix infinite recursion in RLS policies
 -- This migration fixes the circular reference issue in the users table policies
 
 -- =============================================
--- SECURITY DEFINER FUNCTIONS 
+-- SECURITY DEFINER FUNCTIONS
 -- =============================================
 
 -- Function to check if a user is admin/moderator without causing recursion
@@ -29,8 +30,8 @@ CREATE OR REPLACE FUNCTION public.is_admin_user(user_id uuid)
 RETURNS boolean AS
 $$
 SELECT COALESCE(
-  (SELECT user_role IN ('admin', 'moderator') 
-   FROM public.users 
+  (SELECT user_role IN ('admin', 'moderator')
+   FROM public.users
    WHERE id = user_id),
   false
 );
@@ -68,13 +69,13 @@ DROP POLICY IF EXISTS "Admins can manage all users" ON public.users;
 -- Create fixed user policies
 CREATE POLICY "Users can view their own profile" ON public.users
     FOR SELECT USING (
-        auth.uid()::text = id::text OR 
+        auth.uid()::text = id::text OR
         public.is_admin_user(auth.uid())
     );
 
 CREATE POLICY "Users can update their own profile" ON public.users
     FOR UPDATE USING (
-        auth.uid()::text = id::text AND 
+        auth.uid()::text = id::text AND
         public.is_valid_user(auth.uid())
     );
 
