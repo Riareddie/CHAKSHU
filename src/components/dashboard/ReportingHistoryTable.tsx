@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,10 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, RefreshCw } from "lucide-react";
+import { Download, RefreshCw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ReportDetailsModal, { Report } from "./ReportDetailsModal";
-import { mockReportsData, type MockReport } from "@/data/mockReports";
+import {
+  reportsService,
+  type Report as DatabaseReport,
+} from "@/services/database";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ReportingHistoryTableProps {
   filters: {
