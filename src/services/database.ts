@@ -870,7 +870,7 @@ class RealtimeService {
 
     return () => {
       channel.unsubscribe();
-      this.subscriptions.delete("reports");
+      this.subscriptions.delete("fraud_reports");
     };
   }
 
