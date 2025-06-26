@@ -888,35 +888,6 @@ class CommunityCommentsService extends DatabaseService {
     });
   }
 }
-      let query = supabase
-        .from("notifications")
-        .select("*", { count: "exact" })
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      if (unreadOnly) {
-        query = query.eq("is_read", false);
-      }
-
-      const [notificationsResult, unreadResult] = await Promise.all([
-        query,
-        supabase
-          .from("notifications")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .eq("is_read", false),
-      ]);
-
-      return {
-        data: {
-          notifications: notificationsResult.data || [],
-          total: notificationsResult.count || 0,
-          unread_count: unreadResult.count || 0,
-        },
-        error: notificationsResult.error,
-      };
-    }, "fetch user notifications");
   }
 
   /**
