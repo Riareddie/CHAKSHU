@@ -111,37 +111,43 @@ class DatabaseService {
         });
 
         // Provide user-friendly error messages for common issues
-        let userFriendlyMessage =
-          response.error.message || `Failed to ${operation}`;
+        let userFriendlyMessage = response.error.message || `Failed to ${operation}`;
 
         if (response.error.message?.includes("infinite recursion")) {
           // Log detailed instructions for developers
-          console.error(
-            "🚨 INFINITE RECURSION IN DATABASE POLICIES DETECTED 🚨",
-          );
-          console.error(
-            "This error occurs when RLS policies have circular references.",
-          );
-          console.error(
-            "To fix this, run the migration: supabase/migrations/20250614000000-fix-rls-infinite-recursion.sql",
-          );
-          console.error(
-            "Or check the DatabaseStatus component for detailed instructions.",
-          );
+          console.error("🚨 INFINITE RECURSION IN DATABASE POLICIES DETECTED 🚨");
+          console.error("");
+          console.error("IMMEDIATE ACTION REQUIRED:");
+          console.error("1. Go to Supabase Dashboard → SQL Editor");
+          console.error("2. Run this quick fix SQL:");
+          console.error("");
+          console.error("CREATE OR REPLACE FUNCTION public.is_admin_user(user_id uuid)");
+          console.error("RETURNS boolean AS $$");
+          console.error("SELECT COALESCE((SELECT user_role IN ('admin', 'moderator') FROM public.users WHERE id = user_id), false);");
+          console.error("$$ LANGUAGE sql STABLE SECURITY DEFINER;");
+          console.error("");
+          console.error("DROP POLICY IF EXISTS \"Users can view their own profile\" ON public.users;");
+          console.error("DROP POLICY IF EXISTS \"Admins can manage all users\" ON public.users;");
+          console.error("");
+          console.error("CREATE POLICY \"Users can view their own profile\" ON public.users");
+          console.error("FOR SELECT USING (auth.uid()::text = id::text OR public.is_admin_user(auth.uid()));");
+          console.error("");
+          console.error("CREATE POLICY \"Admins can manage all users\" ON public.users");
+          console.error("FOR ALL USING (public.is_admin_user(auth.uid()));");
+          console.error("");
+          console.error("GRANT EXECUTE ON FUNCTION public.is_admin_user(uuid) TO authenticated;");
+          console.error("");
+          console.error("3. Refresh the page and try again");
+          console.error("");
 
-          userFriendlyMessage =
-            "Database configuration issue detected. Please contact support.";
-        } else if (
-          response.error.message?.includes("JWT") ||
-          response.error.message?.includes("auth")
-        ) {
+          userFriendlyMessage = "Database configuration issue detected. Please contact support.";
+        }
+        } else if (response.error.message?.includes("JWT") ||
+                   response.error.message?.includes("auth")) {
           userFriendlyMessage = "Authentication required. Please log in again.";
-        } else if (
-          response.error.message?.includes("permission denied") ||
-          response.error.message?.includes("policy")
-        ) {
-          userFriendlyMessage =
-            "Access denied. You don't have permission to perform this action.";
+        } else if (response.error.message?.includes("permission denied") ||
+                   response.error.message?.includes("policy")) {
+          userFriendlyMessage = "Access denied. You don't have permission to perform this action.";
         } else if (response.error.message?.includes("connection")) {
           userFriendlyMessage = "Database connection error. Please try again.";
         }
@@ -184,17 +190,20 @@ class DatabaseService {
    * Check database connection health
    */
   async healthCheck(): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(async () => {
-      // First try the health check function that doesn't trigger RLS
-      try {
-        const result = await supabase.rpc("database_health_check");
-        return { data: result.data || true, error: null };
-      } catch (error) {
-        // Fallback to simple query if function doesn't exist
-        console.warn("Health check function not available, using fallback");
-        return await supabase.from("fraud_reports").select("id").limit(1);
-      }
-    }, "health check");
+    return this.executeQuery(
+      async () => {
+        // First try the health check function that doesn't trigger RLS
+        try {
+          const result = await supabase.rpc("database_health_check");
+          return { data: result.data || true, error: null };
+        } catch (error) {
+          // Fallback to simple query if function doesn't exist
+          console.warn("Health check function not available, using fallback");
+          return await supabase.from("fraud_reports").select("id").limit(1);
+        }
+      },
+      "health check",
+    );
   }
 }
 
@@ -321,41 +330,38 @@ class ReportsService extends DatabaseService {
       };
     }
 
-    return this.executeQuery(async () => {
-      // First try to get reports with RLS policies
-      const result = await supabase
-        .from("fraud_reports")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+    return this.executeQuery(
+      async () => {
+        // First try to get reports with RLS policies
+        const result = await supabase
+          .from("fraud_reports")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
 
-      // If there's a policy error, provide helpful feedback
-      if (result.error) {
-        console.error("Database fetch user reports error:", result.error);
+        // If there's a policy error, provide helpful feedback
+        if (result.error) {
+          console.error("Database fetch user reports error:", result.error);
 
-        // Check for specific RLS policy errors
-        if (
-          result.error.message?.includes("infinite recursion") ||
-          result.error.message?.includes("policy")
-        ) {
-          throw new Error(
-            "Database configuration error. Please contact support.",
-          );
+          // Check for specific RLS policy errors
+          if (result.error.message?.includes("infinite recursion") ||
+              result.error.message?.includes("policy")) {
+            throw new Error("Database configuration error. Please contact support.");
+          }
+
+          // Check for authentication errors
+          if (result.error.message?.includes("JWT") ||
+              result.error.message?.includes("auth")) {
+            throw new Error("Authentication required. Please log in again.");
+          }
+
+          throw new Error(result.error.message || "Failed to fetch reports");
         }
 
-        // Check for authentication errors
-        if (
-          result.error.message?.includes("JWT") ||
-          result.error.message?.includes("auth")
-        ) {
-          throw new Error("Authentication required. Please log in again.");
-        }
-
-        throw new Error(result.error.message || "Failed to fetch reports");
-      }
-
-      return result;
-    }, "fetch user reports");
+        return result;
+      },
+      "fetch user reports",
+    );
   }
 
   /**
