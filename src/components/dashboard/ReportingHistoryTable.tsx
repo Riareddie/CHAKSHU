@@ -45,16 +45,19 @@ const convertToMockFormat = (report: DatabaseReport): MockReport => {
   return {
     id: report.id,
     date: new Date(report.created_at).toLocaleDateString(),
-    type: report.report_type
+    type: (report.fraud_type || report.report_type || "unknown")
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
     description: report.description,
-    status: report.status
+    status: (report.status || "pending")
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
-    impact: report.priority.replace(/\b\w/g, (l) => l.toUpperCase()), // Use priority as impact
-    amount: undefined, // Not stored in fraud_reports schema
-    location: "Not specified", // Not stored in this schema
+    impact: (report.priority || report.severity || "Medium").replace(
+      /\b\w/g,
+      (l) => l.toUpperCase(),
+    ),
+    amount: report.amount_involved || undefined,
+    location: report.state || report.city || report.location || "Not specified",
   };
 };
 
