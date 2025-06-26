@@ -42,6 +42,7 @@ import PrivacySettings from "@/components/profile/PrivacySettings";
 import ActivityHistory from "@/components/profile/ActivityHistory";
 import NotificationPreferences from "@/components/profile/NotificationPreferences";
 import ProfileStats from "@/components/profile/ProfileStats";
+import ProfileQuickActions from "@/components/profile/ProfileQuickActions";
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -70,6 +71,11 @@ const UserProfile = () => {
             {/* Profile Stats Overview */}
             <div className="mb-6 sm:mb-8 lg:mb-12">
               <ProfileStats />
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mb-6 sm:mb-8 lg:mb-12">
+              <ProfileQuickActions />
             </div>
 
             {/* Main Profile Content */}
