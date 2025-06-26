@@ -338,8 +338,16 @@ const FraudReportingForm = () => {
           "Please provide a detailed description (at least 10 characters)",
         );
       }
-      if (!formData.dateTime) {
-        throw new Error("Please select the incident date and time");
+      if (
+        !formData.dateTime ||
+        !(formData.dateTime instanceof Date) ||
+        isNaN(formData.dateTime.getTime())
+      ) {
+        console.log(
+          "Date validation failed. Current dateTime value:",
+          formData.dateTime,
+        );
+        throw new Error("Please select the incident date");
       }
 
       // First validate the current step
