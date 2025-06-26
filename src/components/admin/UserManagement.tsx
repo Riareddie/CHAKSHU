@@ -67,6 +67,8 @@ const UserManagement = () => {
 
   // Filter and search users
   const filteredUsers = useMemo(() => {
+    if (!users || !Array.isArray(users)) return [];
+
     return users.filter((user) => {
       const matchesSearch =
         !userFilters.search ||
