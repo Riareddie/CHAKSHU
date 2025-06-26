@@ -33,6 +33,8 @@ import InternationalCallReport from "./pages/InternationalCallReport";
 import WirelineISPCheck from "./pages/WirelineISPCheck";
 import VoiceReporting from "./pages/VoiceReporting";
 import Guidelines from "./pages/Guidelines";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "@/components/ui/error-boundary";
 
@@ -116,6 +118,8 @@ const AppContent = () => {
             />
             <Route path="/voice-reporting" element={<VoiceReporting />} />
             <Route path="/guidelines" element={<Guidelines />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
