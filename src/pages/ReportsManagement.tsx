@@ -63,22 +63,44 @@ interface DisplayReport {
   evidenceCount: number;
 }
 
+// Helper function to safely format strings
+const formatString = (
+  str: string | null | undefined,
+  fallback: string = "Unknown",
+): string => {
+  if (!str || typeof str !== "string") return fallback;
+  return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
 // Convert database report to display format
 const convertToDisplayFormat = (report: Report): DisplayReport => {
+  // Safely extract and format report type
+  const reportType = formatString(
+    report.report_type || report.fraud_type,
+    "General",
+  );
+
+  // Safely extract and format fraud category
+  const fraudCategory = formatString(
+    report.fraud_category || report.fraud_type || report.title,
+    "Fraud",
+  );
+
   return {
     id: report.id,
-    type: report.report_type
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase()),
-    title: `${report.fraud_category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
-    description: report.description,
-    phoneNumber: report.fraudulent_number,
-    location: "Not specified", // Location not stored in this schema
-    amount: undefined, // Amount not stored in this schema
-    status: report.status as DisplayReport["status"],
+    type: reportType,
+    title: report.title || `${fraudCategory} Report`,
+    description: report.description || "No description provided",
+    phoneNumber: report.fraudulent_number || null,
+    location:
+      report.city && report.state
+        ? `${report.city}, ${report.state}`
+        : "Not specified",
+    amount: report.amount_involved || undefined,
+    status: (report.status as DisplayReport["status"]) || "pending",
     severity: (report.priority as DisplayReport["severity"]) || "medium",
-    submittedAt: new Date(report.created_at),
-    updatedAt: new Date(report.updated_at),
+    submittedAt: new Date(report.created_at || Date.now()),
+    updatedAt: new Date(report.updated_at || report.created_at || Date.now()),
     referenceId: report.id,
     evidenceCount: (report.evidence_urls || []).length,
   };
