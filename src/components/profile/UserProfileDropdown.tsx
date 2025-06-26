@@ -40,6 +40,7 @@ import PrivacySettings from "./PrivacySettings";
 import ActivityHistory from "./ActivityHistory";
 import NotificationPreferences from "./NotificationPreferences";
 import ProfileStats from "./ProfileStats";
+import ProfileQuickActions from "./ProfileQuickActions";
 
 interface UserProfileDropdownProps {
   className?: string;
@@ -199,6 +200,11 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                     {/* Profile Stats Overview */}
                     <div>
                       <ProfileStats />
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div>
+                      <ProfileQuickActions />
                     </div>
 
                     {/* Main Profile Content */}
