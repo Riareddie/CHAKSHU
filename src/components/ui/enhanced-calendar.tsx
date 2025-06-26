@@ -172,19 +172,65 @@ function EnhancedCalendar({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Select Time</span>
               </div>
+
+              {/* Quick time presets */}
+              <div className="mb-3">
+                <label className="text-xs text-muted-foreground block mb-1">
+                  Quick presets
+                </label>
+                <div className="flex gap-1 flex-wrap">
+                  {[
+                    { label: "Morning", hours: 9, minutes: 0 },
+                    { label: "Afternoon", hours: 14, minutes: 0 },
+                    { label: "Evening", hours: 18, minutes: 0 },
+                    {
+                      label: "Now",
+                      hours: new Date().getHours(),
+                      minutes: new Date().getMinutes(),
+                    },
+                  ].map((preset) => (
+                    <Button
+                      key={preset.label}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-6 px-2"
+                      onClick={() => {
+                        handleTimeChange("hours", preset.hours.toString());
+                        handleTimeChange("minutes", preset.minutes.toString());
+                      }}
+                    >
+                      {preset.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground block mb-1">
+                  <label
+                    htmlFor="hour-select"
+                    className="text-xs text-muted-foreground block mb-1"
+                  >
                     Hour
                   </label>
                   <select
+                    id="hour-select"
                     value={selectedDate.getHours()}
                     onChange={(e) => handleTimeChange("hours", e.target.value)}
-                    className="w-full h-8 text-sm border border-input rounded px-2 bg-background"
+                    className="w-full h-8 text-sm border border-input rounded px-2 bg-background focus:ring-2 focus:ring-ring"
+                    aria-label="Select hour"
                   >
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>
-                        {i.toString().padStart(2, "0")}
+                        {i.toString().padStart(2, "0")} (
+                        {i === 0
+                          ? "12 AM"
+                          : i < 12
+                            ? `${i} AM`
+                            : i === 12
+                              ? "12 PM"
+                              : `${i - 12} PM`}
+                        )
                       </option>
                     ))}
                   </select>
@@ -193,21 +239,28 @@ function EnhancedCalendar({
                   <span className="text-lg text-muted-foreground">:</span>
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground block mb-1">
+                  <label
+                    htmlFor="minute-select"
+                    className="text-xs text-muted-foreground block mb-1"
+                  >
                     Minute
                   </label>
                   <select
+                    id="minute-select"
                     value={selectedDate.getMinutes()}
                     onChange={(e) =>
                       handleTimeChange("minutes", e.target.value)
                     }
-                    className="w-full h-8 text-sm border border-input rounded px-2 bg-background"
+                    className="w-full h-8 text-sm border border-input rounded px-2 bg-background focus:ring-2 focus:ring-ring"
+                    aria-label="Select minute"
                   >
-                    {Array.from({ length: 60 }, (_, i) => (
-                      <option key={i} value={i}>
-                        {i.toString().padStart(2, "0")}
-                      </option>
-                    ))}
+                    {Array.from({ length: 12 }, (_, i) => i * 5).map(
+                      (minute) => (
+                        <option key={minute} value={minute}>
+                          {minute.toString().padStart(2, "0")}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
               </div>
