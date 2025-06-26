@@ -315,26 +315,41 @@ class AdminService {
    */
   async getAdminStats(): Promise<ServiceResponse<AdminStats>> {
     return this.executeQuery(async () => {
-      // Fetch all reports with status breakdown
-      const { data: reports, error: reportsError } = await supabase
-        .from("reports")
-        .select("status, amount_involved, created_at");
+      let reports = [];
+      let usersCount = 0;
 
-      if (reportsError) {
-        console.error("Reports query error:", reportsError);
-        throw new Error(
-          `Reports query failed: ${reportsError.message || reportsError.code || "Unknown error"}`,
-        );
+      // Try to fetch reports with proper error handling
+      try {
+        const { data: reportsData, error: reportsError } = await supabase
+          .from("reports")
+          .select("status, amount_involved, created_at");
+
+        if (reportsError) {
+          console.error("Reports query error:", reportsError);
+          console.warn("Using empty reports data due to error");
+        } else {
+          reports = reportsData || [];
+        }
+      } catch (error) {
+        console.error("Reports query exception:", error);
+        reports = [];
       }
 
-      // Fetch user count
-      const { count: usersCount, error: usersError } = await supabase
-        .from("user_analytics_preferences")
-        .select("*", { count: "exact", head: true });
+      // Try to fetch user count with proper error handling
+      try {
+        const { count, error: usersError } = await supabase
+          .from("user_analytics_preferences")
+          .select("*", { count: "exact", head: true });
 
-      if (usersError) {
-        console.error("User count query error:", usersError);
-        // Don't throw here, just log and continue with 0 users
+        if (usersError) {
+          console.error("User count query error:", usersError);
+          console.warn("Using 0 user count due to error");
+        } else {
+          usersCount = count || 0;
+        }
+      } catch (error) {
+        console.error("User count query exception:", error);
+        usersCount = 0;
       }
 
       // Calculate statistics
