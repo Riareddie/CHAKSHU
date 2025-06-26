@@ -21,6 +21,8 @@ import AuthModal from "@/components/auth/AuthModal";
 import useFormValidation, {
   enhancedValidations,
 } from "@/hooks/useFormValidation";
+import { reportsService, evidenceService } from "@/services/database";
+import type { ReportInsert } from "@/services/database";
 
 interface FormData {
   fraudType: string;
@@ -32,6 +34,9 @@ interface FormData {
   amount?: number;
   location?: string;
   additionalDetails?: string;
+  title?: string;
+  city?: string;
+  state?: string;
 }
 
 const FraudReportingForm = () => {
@@ -55,6 +60,9 @@ const FraudReportingForm = () => {
     amount: undefined,
     location: "",
     additionalDetails: "",
+    title: "",
+    city: "",
+    state: "",
   });
 
   // Form validation schema
@@ -348,17 +356,68 @@ const FraudReportingForm = () => {
         return;
       }
 
-      // Simulate API submission
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Map fraud type to report type
+      const getReportType = (fraudType: string): string => {
+        const typeMap: Record<string, string> = {
+          "Call Fraud": "call",
+          "SMS Fraud": "sms",
+          "WhatsApp Scam": "whatsapp",
+          "Email Spam": "email",
+        };
+        return typeMap[fraudType] || "call";
+      };
 
-      // Generate reference ID
-      const referenceId = `FR-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      // Map category to fraud_category
+      const getFraudCategory = (category: string): string => {
+        const categoryMap: Record<string, string> = {
+          "Financial Fraud": "financial_fraud",
+          "Investment Scam": "investment_fraud",
+          "Lottery Scam": "lottery_scam",
+          "Job Fraud": "job_fraud",
+          Impersonation: "impersonation",
+        };
+        return categoryMap[category] || "other";
+      };
+
+      // Map form data to database schema
+      const reportData: ReportInsert = {
+        user_id: user.id,
+        report_type: getReportType(formData.fraudType),
+        fraudulent_number: formData.phoneNumber,
+        incident_date:
+          formData.dateTime?.toISOString().split("T")[0] ||
+          new Date().toISOString().split("T")[0],
+        incident_time: formData.dateTime?.toTimeString().split(" ")[0] || null,
+        description: formData.messageContent,
+        fraud_category: getFraudCategory(formData.category),
+        evidence_urls: [],
+        status: "pending",
+        priority: "medium",
+      };
+
+      // Submit report to database
+      const reportResult = await reportsService.create(reportData);
+
+      if (!reportResult.success || !reportResult.data) {
+        throw new Error(reportResult.error || "Failed to create report");
+      }
+
+      const createdReport = reportResult.data;
+
+      // Upload evidence files if any
+      if (formData.files.length > 0) {
+        const uploadPromises = formData.files.map((file) =>
+          evidenceService.uploadFile(file, createdReport.id, user.id),
+        );
+
+        await Promise.allSettled(uploadPromises);
+      }
 
       setSubmitSuccess(true);
 
       toast({
         title: "Report Submitted Successfully",
-        description: `Your fraud report has been submitted. Reference ID: ${referenceId}`,
+        description: `Your fraud report has been submitted with ID: ${createdReport.id}`,
       });
 
       // Clear form and draft
@@ -372,6 +431,9 @@ const FraudReportingForm = () => {
         amount: undefined,
         location: "",
         additionalDetails: "",
+        title: "",
+        city: "",
+        state: "",
       });
       localStorage.removeItem("fraud-report-draft");
       setCurrentStep(1);

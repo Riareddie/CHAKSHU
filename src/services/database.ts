@@ -12,10 +12,42 @@ import type {
 } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 
-// Type aliases for convenience
-type Report = Tables<"reports">;
-type ReportInsert = TablesInsert<"reports">;
-type ReportUpdate = TablesUpdate<"reports">;
+// Type aliases for convenience - using fraud_reports table
+type FraudReport = {
+  id: string;
+  user_id: string;
+  report_type: string;
+  fraudulent_number: string;
+  incident_date: string;
+  incident_time?: string;
+  description: string;
+  fraud_category: string;
+  evidence_urls?: string[];
+  status: string;
+  priority: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type FraudReportInsert = {
+  user_id: string;
+  report_type: string;
+  fraudulent_number: string;
+  incident_date: string;
+  incident_time?: string;
+  description: string;
+  fraud_category: string;
+  evidence_urls?: string[];
+  status?: string;
+  priority?: string;
+};
+
+type FraudReportUpdate = Partial<FraudReportInsert>;
+
+// Keep legacy names for compatibility
+type Report = FraudReport;
+type ReportInsert = FraudReportInsert;
+type ReportUpdate = FraudReportUpdate;
 
 type Notification = Tables<"notifications">;
 type NotificationInsert = TablesInsert<"notifications">;
@@ -103,7 +135,7 @@ class DatabaseService {
    */
   async healthCheck(): Promise<ServiceResponse<boolean>> {
     return this.executeQuery(
-      () => supabase.from("reports").select("id").limit(1),
+      () => supabase.from("fraud_reports").select("id").limit(1),
       "health check",
     );
   }
@@ -119,10 +151,8 @@ class ReportsService extends DatabaseService {
   async getAll(
     filters: {
       status?: string;
-      fraud_type?: string;
+      fraud_category?: string;
       user_id?: string;
-      city?: string;
-      state?: string;
       date_from?: string;
       date_to?: string;
     } = {},
@@ -133,7 +163,7 @@ class ReportsService extends DatabaseService {
 
     return this.executeQuery(async () => {
       let query = supabase
-        .from("reports")
+        .from("fraud_reports")
         .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
@@ -142,17 +172,11 @@ class ReportsService extends DatabaseService {
       if (filters.status) {
         query = query.eq("status", filters.status);
       }
-      if (filters.fraud_type) {
-        query = query.eq("fraud_type", filters.fraud_type);
+      if (filters.fraud_category) {
+        query = query.eq("fraud_category", filters.fraud_category);
       }
       if (filters.user_id) {
         query = query.eq("user_id", filters.user_id);
-      }
-      if (filters.city) {
-        query = query.eq("city", filters.city);
-      }
-      if (filters.state) {
-        query = query.eq("state", filters.state);
       }
       if (filters.date_from) {
         query = query.gte("created_at", filters.date_from);
@@ -178,7 +202,7 @@ class ReportsService extends DatabaseService {
    */
   async getById(id: string): Promise<ServiceResponse<Report>> {
     return this.executeQuery(
-      () => supabase.from("reports").select("*").eq("id", id).single(),
+      () => supabase.from("fraud_reports").select("*").eq("id", id).single(),
       "fetch report",
     );
   }
@@ -188,7 +212,7 @@ class ReportsService extends DatabaseService {
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
     return this.executeQuery(
-      () => supabase.from("reports").insert(report).select().single(),
+      () => supabase.from("fraud_reports").insert(report).select().single(),
       "create report",
     );
   }
@@ -208,7 +232,7 @@ class ReportsService extends DatabaseService {
     return this.executeQuery(
       () =>
         supabase
-          .from("reports")
+          .from("fraud_reports")
           .update(updateData)
           .eq("id", id)
           .select()
@@ -222,7 +246,7 @@ class ReportsService extends DatabaseService {
    */
   async delete(id: string): Promise<ServiceResponse<boolean>> {
     return this.executeQuery(
-      () => supabase.from("reports").delete().eq("id", id),
+      () => supabase.from("fraud_reports").delete().eq("id", id),
       "delete report",
     );
   }
@@ -234,7 +258,7 @@ class ReportsService extends DatabaseService {
     return this.executeQuery(
       () =>
         supabase
-          .from("reports")
+          .from("fraud_reports")
           .select("*")
           .eq("user_id", userId)
           .order("created_at", { ascending: false }),
@@ -251,15 +275,13 @@ class ReportsService extends DatabaseService {
       pending: number;
       resolved: number;
       rejected: number;
-      totalAmount: number;
-      byFraudType: Record<string, number>;
-      byLocation: Record<string, number>;
+      byFraudCategory: Record<string, number>;
     }>
   > {
     return this.executeQuery(async () => {
       const result = await supabase
-        .from("reports")
-        .select("status, amount_involved, fraud_type, city, state");
+        .from("fraud_reports")
+        .select("status, fraud_category");
 
       if (result.error) return result;
 
@@ -269,23 +291,13 @@ class ReportsService extends DatabaseService {
         pending: reports.filter((r) => r.status === "pending").length,
         resolved: reports.filter((r) => r.status === "resolved").length,
         rejected: reports.filter((r) => r.status === "rejected").length,
-        totalAmount: reports.reduce(
-          (sum, r) => sum + (r.amount_involved || 0),
-          0,
-        ),
-        byFraudType: {} as Record<string, number>,
-        byLocation: {} as Record<string, number>,
+        byFraudCategory: {} as Record<string, number>,
       };
 
-      // Calculate fraud type distribution
+      // Calculate fraud category distribution
       reports.forEach((report) => {
-        stats.byFraudType[report.fraud_type] =
-          (stats.byFraudType[report.fraud_type] || 0) + 1;
-
-        if (report.state) {
-          stats.byLocation[report.state] =
-            (stats.byLocation[report.state] || 0) + 1;
-        }
+        stats.byFraudCategory[report.fraud_category] =
+          (stats.byFraudCategory[report.fraud_category] || 0) + 1;
       });
 
       return { data: stats, error: null };
@@ -841,24 +853,24 @@ class RealtimeService {
     }
 
     let channel = supabase
-      .channel("reports-changes")
+      .channel("fraud-reports-changes")
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "reports",
+          table: "fraud_reports",
           filter: userId ? `user_id=eq.${userId}` : undefined,
         },
         callback,
       )
       .subscribe();
 
-    this.subscriptions.set("reports", channel);
+    this.subscriptions.set("fraud_reports", channel);
 
     return () => {
       channel.unsubscribe();
-      this.subscriptions.delete("reports");
+      this.subscriptions.delete("fraud_reports");
     };
   }
 

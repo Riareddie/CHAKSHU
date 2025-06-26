@@ -35,6 +35,9 @@ interface FormData {
   amount?: number;
   location?: string;
   additionalDetails?: string;
+  title?: string;
+  city?: string;
+  state?: string;
 }
 
 interface DetailsFormStepProps {
@@ -61,6 +64,30 @@ const DetailsFormStep: React.FC<DetailsFormStepProps> = ({
           encountered
         </p>
       </div>
+
+      {/* Report Title */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Report Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <Label htmlFor="title">Report Title (Optional)</Label>
+            <Input
+              id="title"
+              type="text"
+              placeholder="Brief summary of the fraud incident"
+              value={formData.title || ""}
+              onChange={(e) => onUpdateData("title", e.target.value)}
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Provide a short, descriptive title for your report (auto-generated
+              if left blank)
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contact Information */}
