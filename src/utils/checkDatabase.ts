@@ -13,14 +13,8 @@ export async function checkDatabaseTables() {
     if (error) {
       console.error("❌ Failed to query information_schema:", error);
 
-      // Try a simpler approach - test common tables
-      const tablesToCheck = [
-        "fraud_reports",
-        "otp_verification",
-        "notifications",
-        "report_evidence",
-        "community_interactions",
-      ];
+      // Try a simpler approach - test essential tables only
+      const tablesToCheck = ["fraud_reports", "otp_verification"];
 
       for (const table of tablesToCheck) {
         try {
