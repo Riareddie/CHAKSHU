@@ -241,6 +241,11 @@ class ReportsService extends DatabaseService {
         city: "Bangalore",
         currency: "INR",
         // Additional properties for compatibility
+        report_type: "sms",
+        fraud_category: "investment_fraud",
+        fraudulent_number: "+91-9876543211",
+        priority: "medium",
+        evidence_urls: [],
         authority_action: "case_closed",
         authority_comments: "Case resolved, funds recovered",
         contact_info: null,
