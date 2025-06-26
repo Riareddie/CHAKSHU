@@ -155,7 +155,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
               </DialogHeader>
 
               <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full px-6 py-4">
+                <ScrollArea className="h-full px-6 py-4 modal-scroll">
                   <div className="space-y-6">
                     {/* Profile Stats Overview */}
                     <div>
