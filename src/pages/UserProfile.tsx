@@ -84,57 +84,45 @@ const UserProfile = () => {
                   <TabsList className="inline-flex w-full min-w-max sm:w-auto sm:grid sm:grid-cols-3 lg:grid-cols-6 bg-white border border-gray-200 rounded-lg p-1">
                     <TabsTrigger
                       value="overview"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
                     >
-                      <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden xs:inline sm:inline">
-                        Overview
-                      </span>
+                      <User className="h-4 w-4" />
+                      <span className="hidden sm:inline">Overview</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="account"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
                     >
-                      <Settings className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden xs:inline sm:inline">
-                        Account
-                      </span>
+                      <Settings className="h-4 w-4" />
+                      <span className="hidden sm:inline">Account</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="security"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
                     >
-                      <Shield className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden xs:inline sm:inline">
-                        Security
-                      </span>
+                      <Shield className="h-4 w-4" />
+                      <span className="hidden sm:inline">Security</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="privacy"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
                     >
-                      <Lock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden xs:inline sm:inline">
-                        Privacy
-                      </span>
+                      <Lock className="h-4 w-4" />
+                      <span className="hidden sm:inline">Privacy</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="notifications"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
                     >
-                      <Bell className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden xs:inline sm:inline">
-                        Notifications
-                      </span>
+                      <Bell className="h-4 w-4" />
+                      <span className="hidden sm:inline">Notifications</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base min-w-0 whitespace-nowrap transition-all duration-200"
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
                     >
-                      <Activity className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden xs:inline sm:inline">
-                        Activity
-                      </span>
+                      <Activity className="h-4 w-4" />
+                      <span className="hidden sm:inline">Activity</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
