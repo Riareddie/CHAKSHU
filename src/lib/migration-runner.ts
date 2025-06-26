@@ -64,6 +64,27 @@ export async function checkDatabaseHealth(): Promise<MigrationResult> {
     if (error) {
       // Check for infinite recursion error
       if (error.message?.includes("infinite recursion")) {
+        // Log detailed instructions to console for developers
+        console.error("🚨 DATABASE INFINITE RECURSION DETECTED 🚨");
+        console.error("");
+        console.error(
+          "The database has infinite recursion in RLS policies that needs to be fixed.",
+        );
+        console.error("");
+        console.error("QUICK FIX INSTRUCTIONS:");
+        console.error("1. Go to your Supabase Dashboard > SQL Editor");
+        console.error(
+          "2. Run the migration file: supabase/migrations/20250614000000-fix-rls-infinite-recursion.sql",
+        );
+        console.error(
+          "3. Or copy the migration SQL from the DatabaseStatus component",
+        );
+        console.error("");
+        console.error(
+          "This will create security definer functions to prevent circular references in RLS policies.",
+        );
+        console.error("");
+
         return {
           success: false,
           error:
