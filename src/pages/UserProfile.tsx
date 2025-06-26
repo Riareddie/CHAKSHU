@@ -43,6 +43,7 @@ import ActivityHistory from "@/components/profile/ActivityHistory";
 import NotificationPreferences from "@/components/profile/NotificationPreferences";
 import ProfileStats from "@/components/profile/ProfileStats";
 import ProfileQuickActions from "@/components/profile/ProfileQuickActions";
+import UserStatusIndicator from "@/components/profile/UserStatusIndicator";
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -68,6 +69,8 @@ const UserProfile = () => {
               </p>
             </div>
 
+            {/* User Status */}
+            <UserStatusIndicator />
             {/* Profile Stats Overview */}
             <div className="mb-6 sm:mb-8 lg:mb-12">
               <ProfileStats />
