@@ -374,11 +374,51 @@ const FraudReportingForm = () => {
       // Map category to fraud_category
       const getFraudCategory = (category: string): string => {
         const categoryMap: Record<string, string> = {
-          "Financial Fraud": "financial_fraud",
-          "Investment Scam": "investment_fraud",
-          "Lottery Scam": "lottery_scam",
-          "Job Fraud": "job_fraud",
-          Impersonation: "impersonation",
+          // Phone call categories
+          fake_bank_call: "financial_fraud",
+          tech_support_scam: "tech_support_scam",
+          prize_scam: "lottery_scam",
+          survey_scam: "other",
+
+          // SMS fraud categories
+          otp_theft: "financial_fraud",
+          fake_delivery: "other",
+          prize_sms: "lottery_scam",
+          malicious_links: "other",
+
+          // Email phishing categories
+          account_verification: "impersonation",
+          invoice_scam: "financial_fraud",
+          fake_offers: "other",
+          malware_email: "other",
+
+          // Online fraud categories
+          fake_shopping: "other",
+          dating_scam: "romance_scam",
+          social_media_fraud: "other",
+          fake_services: "other",
+
+          // Financial fraud categories
+          upi_fraud: "financial_fraud",
+          credit_card_fraud: "financial_fraud",
+          investment_scam: "investment_fraud",
+          loan_scam: "financial_fraud",
+
+          // Identity theft categories
+          document_theft: "impersonation",
+          fake_profiles: "impersonation",
+          kyc_fraud: "impersonation",
+
+          // Job fraud categories
+          fake_job_offer: "job_fraud",
+          work_from_home: "job_fraud",
+          fee_based_jobs: "job_fraud",
+
+          // Other categories
+          matrimonial_fraud: "other",
+          rental_scam: "other",
+          charity_scam: "other",
+          general_fraud: "other",
         };
         return categoryMap[category] || "other";
       };
