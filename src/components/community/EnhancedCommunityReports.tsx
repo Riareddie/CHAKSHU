@@ -370,19 +370,16 @@ const EnhancedCommunityReports: React.FC = () => {
             />
 
             <Select
-              value={filters.fraudType || "all"}
+              value={filters.fraudType}
               onValueChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  fraudType: value === "all" ? "" : value,
-                }))
+                setFilters((prev) => ({ ...prev, fraudType: value }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Fraud Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="">All Types</SelectItem>
                 <SelectItem value="UPI Fraud">UPI Fraud</SelectItem>
                 <SelectItem value="Call Fraud">Call Fraud</SelectItem>
                 <SelectItem value="WhatsApp Scam">WhatsApp Scam</SelectItem>
@@ -393,19 +390,16 @@ const EnhancedCommunityReports: React.FC = () => {
             </Select>
 
             <Select
-              value={filters.severity || "all"}
+              value={filters.severity}
               onValueChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  severity: value === "all" ? "" : value,
-                }))
+                setFilters((prev) => ({ ...prev, severity: value }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="">All Levels</SelectItem>
                 <SelectItem value="critical">Critical</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
@@ -414,19 +408,16 @@ const EnhancedCommunityReports: React.FC = () => {
             </Select>
 
             <Select
-              value={filters.timeRange || "all"}
+              value={filters.timeRange}
               onValueChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  timeRange: value === "all" ? "" : value,
-                }))
+                setFilters((prev) => ({ ...prev, timeRange: value }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Time Range" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="">All Time</SelectItem>
                 <SelectItem value="last24h">Last 24 Hours</SelectItem>
                 <SelectItem value="last7d">Last 7 Days</SelectItem>
                 <SelectItem value="last30d">Last 30 Days</SelectItem>
