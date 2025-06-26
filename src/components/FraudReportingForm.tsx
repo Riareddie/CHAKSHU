@@ -187,7 +187,10 @@ const FraudReportingForm = () => {
     }
 
     if (!isValid) {
-      setErrors((prev) => ({ ...prev, ...newErrors }));
+      // Set each error individually using setError
+      Object.entries(newErrors).forEach(([field, error]) => {
+        setError(field, error);
+      });
     }
 
     return isValid;
