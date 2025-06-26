@@ -402,27 +402,32 @@ const FraudReportingForm = () => {
       setSubmitSuccess(true);
 
       toast({
-        title: "Report Submitted Successfully",
-        description: `Your fraud report has been submitted with ID: ${createdReport.id}`,
+        title: "Report Submitted Successfully! 🎉",
+        description: `Your fraud report has been submitted successfully. Report ID: ${createdReport.id}. You will receive updates via email.`,
+        duration: 8000,
       });
 
-      // Clear form and draft
-      setFormData({
-        fraudType: "",
-        category: "",
-        phoneNumber: "",
-        messageContent: "",
-        dateTime: null,
-        files: [],
-        amount: undefined,
-        location: "",
-        additionalDetails: "",
-        title: "",
-        city: "",
-        state: "",
-      });
-      localStorage.removeItem("fraud-report-draft");
-      setCurrentStep(1);
+      // Clear form and draft after a short delay to show success state
+      setTimeout(() => {
+        setFormData({
+          fraudType: "",
+          category: "",
+          phoneNumber: "",
+          messageContent: "",
+          dateTime: null,
+          files: [],
+          amount: undefined,
+          location: "",
+          additionalDetails: "",
+          title: "",
+          city: "",
+          state: "",
+        });
+        localStorage.removeItem("fraud-report-draft");
+        setCurrentStep(1);
+        setSubmitSuccess(false);
+        setSubmitError(null);
+      }, 2000);
     } catch (error) {
       setSubmitError(
         "An unexpected error occurred while submitting your report. Please try again.",
