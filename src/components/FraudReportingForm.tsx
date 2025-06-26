@@ -631,6 +631,12 @@ const FraudReportingForm = () => {
             errorDetails =
               "Please see the instructions below to fix this issue.";
           } else if (
+            error.message.includes("foreign key constraint") ||
+            error.message.includes("user_id_fkey")
+          ) {
+            errorMessage = "User account verification failed.";
+            errorDetails = "Please log out and log back in, then try again.";
+          } else if (
             error.message.includes("Network") ||
             error.message.includes("fetch")
           ) {
