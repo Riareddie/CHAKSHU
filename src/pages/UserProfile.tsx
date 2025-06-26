@@ -78,7 +78,7 @@ const UserProfile = () => {
             className="w-full"
           >
             {/* Enhanced Responsive Tabs Navigation */}
-            <div className="overflow-x-auto mb-6 sm:mb-8">
+            <div className="overflow-x-auto mb-6 sm:mb-8 pb-2">
               <TabsList className="flex w-full min-w-max md:w-auto md:grid md:grid-cols-6 lg:flex lg:w-auto bg-white border border-gray-200 rounded-lg p-1">
                 <TabsTrigger
                   value="overview"
