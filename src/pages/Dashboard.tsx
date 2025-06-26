@@ -244,6 +244,11 @@ const Dashboard = () => {
             <QuickStatsCards />
           </div>
 
+          {/* Database Status - Show if there are issues */}
+          <div className="mb-6">
+            <DatabaseStatus />
+          </div>
+
           {/* Personal Reporting History - Moved to Top */}
           <div className="mb-8">
             <Card>
