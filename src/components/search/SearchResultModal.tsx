@@ -356,7 +356,6 @@ const SearchResultModal: React.FC<SearchResultModalProps> = ({
 
         <ScrollArea className="flex-1 max-h-[calc(90vh-120px)]">
           <Tabs defaultValue="details" className="w-full">
-          <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
