@@ -128,31 +128,46 @@ const UserProfile = () => {
             </div>
 
             {/* Tab Content with enhanced spacing */}
-            <div className="transition-all duration-300 ease-in-out">
-              <TabsContent value="overview" className="mt-0 focus:outline-none">
+            <div className="transition-all duration-300 ease-in-out space-y-6">
+              <TabsContent
+                value="overview"
+                className="mt-0 focus:outline-none space-y-6"
+              >
                 <ProfileOverview />
               </TabsContent>
 
-              <TabsContent value="account" className="mt-0 focus:outline-none">
+              <TabsContent
+                value="account"
+                className="mt-0 focus:outline-none space-y-6"
+              >
                 <AccountSettings />
               </TabsContent>
 
-              <TabsContent value="security" className="mt-0 focus:outline-none">
+              <TabsContent
+                value="security"
+                className="mt-0 focus:outline-none space-y-6"
+              >
                 <SecuritySettings />
               </TabsContent>
 
-              <TabsContent value="privacy" className="mt-0 focus:outline-none">
+              <TabsContent
+                value="privacy"
+                className="mt-0 focus:outline-none space-y-6"
+              >
                 <PrivacySettings />
               </TabsContent>
 
               <TabsContent
                 value="notifications"
-                className="mt-0 focus:outline-none"
+                className="mt-0 focus:outline-none space-y-6"
               >
                 <NotificationPreferences />
               </TabsContent>
 
-              <TabsContent value="activity" className="mt-0 focus:outline-none">
+              <TabsContent
+                value="activity"
+                className="mt-0 focus:outline-none space-y-6"
+              >
                 <ActivityHistory />
               </TabsContent>
             </div>
