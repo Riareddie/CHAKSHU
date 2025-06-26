@@ -11,6 +11,7 @@ import type {
   TablesUpdate,
 } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
+import "@/utils/checkDatabase"; // This will run the database check immediately
 
 // Type aliases
 type Report = Tables<"reports">;
