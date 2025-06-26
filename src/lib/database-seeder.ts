@@ -35,7 +35,7 @@ export async function seedDatabase(): Promise<DatabaseSeedingResult> {
   try {
     // First, check if we have any existing data
     const { data: existingReports } = await supabase
-      .from("reports")
+      .from("fraud_reports")
       .select("id")
       .limit(1);
 
