@@ -1,5 +1,5 @@
 /**
- * Comprehensive Database Service
+ * Comprehensive Database Service with Enhanced CRUD Operations
  * Centralized service layer for all Supabase database operations
  */
 
@@ -12,49 +12,17 @@ import type {
 } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 
-// Type aliases for convenience - using fraud_reports table
-type FraudReport = {
-  id: string;
-  user_id: string;
-  report_type: string;
-  fraudulent_number: string;
-  incident_date: string;
-  incident_time?: string;
-  description: string;
-  fraud_category: string;
-  evidence_urls?: string[];
-  status: string;
-  priority: string;
-  created_at: string;
-  updated_at: string;
-};
-
-type FraudReportInsert = {
-  user_id: string;
-  report_type: string;
-  fraudulent_number: string;
-  incident_date: string;
-  incident_time?: string;
-  description: string;
-  fraud_category: string;
-  evidence_urls?: string[];
-  status?: string;
-  priority?: string;
-};
-
-type FraudReportUpdate = Partial<FraudReportInsert>;
-
-// Keep legacy names for compatibility
-type Report = FraudReport;
-type ReportInsert = FraudReportInsert;
-type ReportUpdate = FraudReportUpdate;
-
-type Notification = Tables<"notifications">;
-type NotificationInsert = TablesInsert<"notifications">;
+// Type aliases for convenience
+type Report = Tables<"reports">;
+type ReportInsert = TablesInsert<"reports">;
+type ReportUpdate = TablesUpdate<"reports">;
 
 type UserProfile = Tables<"user_profiles">;
 type UserProfileInsert = TablesInsert<"user_profiles">;
 type UserProfileUpdate = TablesUpdate<"user_profiles">;
+
+type Notification = Tables<"notifications">;
+type NotificationInsert = TablesInsert<"notifications">;
 
 type CommunityInteraction = Tables<"community_interactions">;
 type CommunityInteractionInsert = TablesInsert<"community_interactions">;
@@ -62,11 +30,56 @@ type CommunityInteractionInsert = TablesInsert<"community_interactions">;
 type ReportEvidence = Tables<"report_evidence">;
 type ReportEvidenceInsert = TablesInsert<"report_evidence">;
 
-type SupportTicket = Tables<"support_tickets">;
-type SupportTicketInsert = TablesInsert<"support_tickets">;
+// Extended types for community features
+interface CommunityPost {
+  id: string;
+  user_id: string;
+  category_id?: string;
+  report_id?: string;
+  title: string;
+  content: string;
+  post_type: "discussion" | "question" | "warning" | "tip" | "news";
+  tags?: string[];
+  is_pinned: boolean;
+  is_locked: boolean;
+  is_featured: boolean;
+  view_count: number;
+  like_count: number;
+  comment_count: number;
+  bookmark_count: number;
+  last_activity: string;
+  last_comment_at?: string;
+  last_comment_by?: string;
+  created_at: string;
+  updated_at: string;
+}
 
-type EducationArticle = Tables<"education_articles">;
-type FAQ = Tables<"faqs">;
+interface CommunityComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  parent_comment_id?: string;
+  content: string;
+  like_count: number;
+  is_edited: boolean;
+  edited_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CommunityCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color: string;
+  sort_order: number;
+  is_active: boolean;
+  post_count: number;
+  latest_post_id?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 // Generic response type
 interface ServiceResponse<T> {
@@ -135,45 +148,51 @@ class DatabaseService {
    */
   async healthCheck(): Promise<ServiceResponse<boolean>> {
     return this.executeQuery(
-      () => supabase.from("fraud_reports").select("id").limit(1),
+      () => supabase.from("reports").select("id").limit(1),
       "health check",
     );
   }
 }
 
 /**
- * Reports Service
+ * Enhanced Reports Service with Full CRUD
  */
 class ReportsService extends DatabaseService {
   /**
-   * Get all reports with optional filtering
+   * Get all reports with comprehensive filtering and pagination
    */
   async getAll(
     filters: {
       status?: string;
-      fraud_category?: string;
+      fraud_type?: string;
       user_id?: string;
       date_from?: string;
       date_to?: string;
+      location?: string;
+      search?: string;
     } = {},
     page: number = 1,
     limit: number = 10,
-  ): Promise<ServiceResponse<{ reports: Report[]; total: number }>> {
+    sortBy: string = "created_at",
+    sortOrder: "asc" | "desc" = "desc",
+  ): Promise<
+    ServiceResponse<{ reports: Report[]; total: number; page_info: any }>
+  > {
     const offset = (page - 1) * limit;
 
     return this.executeQuery(async () => {
       let query = supabase
-        .from("fraud_reports")
+        .from("reports")
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
+        .order(sortBy, { ascending: sortOrder === "asc" })
         .range(offset, offset + limit - 1);
 
       // Apply filters
       if (filters.status) {
         query = query.eq("status", filters.status);
       }
-      if (filters.fraud_category) {
-        query = query.eq("fraud_category", filters.fraud_category);
+      if (filters.fraud_type) {
+        query = query.eq("fraud_type", filters.fraud_type);
       }
       if (filters.user_id) {
         query = query.eq("user_id", filters.user_id);
@@ -184,13 +203,30 @@ class ReportsService extends DatabaseService {
       if (filters.date_to) {
         query = query.lte("created_at", filters.date_to);
       }
+      if (filters.location) {
+        query = query.ilike("state", `%${filters.location}%`);
+      }
+      if (filters.search) {
+        query = query.or(
+          `title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`,
+        );
+      }
 
       const result = await query;
+      const total = result.count || 0;
+      const totalPages = Math.ceil(total / limit);
 
       return {
         data: {
           reports: result.data || [],
-          total: result.count || 0,
+          total,
+          page_info: {
+            current_page: page,
+            total_pages: totalPages,
+            has_next: page < totalPages,
+            has_prev: page > 1,
+            per_page: limit,
+          },
         },
         error: result.error,
       };
@@ -198,90 +234,191 @@ class ReportsService extends DatabaseService {
   }
 
   /**
-   * Get report by ID
+   * Get report by ID with related data
    */
-  async getById(id: string): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").select("*").eq("id", id).single(),
-      "fetch report",
-    );
+  async getById(
+    id: string,
+    includeRelated: boolean = false,
+  ): Promise<ServiceResponse<any>> {
+    return this.executeQuery(async () => {
+      let query = supabase.from("reports").select("*").eq("id", id);
+
+      if (includeRelated) {
+        // Include evidence and interactions
+        const [reportResult, evidenceResult, interactionsResult] =
+          await Promise.all([
+            supabase.from("reports").select("*").eq("id", id).single(),
+            supabase.from("report_evidence").select("*").eq("report_id", id),
+            supabase
+              .from("community_interactions")
+              .select("*")
+              .eq("report_id", id)
+              .order("created_at", { ascending: false }),
+          ]);
+
+        if (reportResult.data) {
+          return {
+            data: {
+              ...reportResult.data,
+              evidence: evidenceResult.data || [],
+              interactions: interactionsResult.data || [],
+            },
+            error: reportResult.error,
+          };
+        }
+        return reportResult;
+      }
+
+      return query.single();
+    }, "fetch report");
   }
 
   /**
-   * Create new report
+   * Create new report with validation
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").insert(report).select().single(),
-      "create report",
-    );
+    return this.executeQuery(async () => {
+      // Validate required fields
+      if (!report.title || !report.description || !report.fraud_type) {
+        throw new Error("Title, description, and fraud type are required");
+      }
+
+      const result = await supabase
+        .from("reports")
+        .insert({
+          ...report,
+          status: report.status || "pending",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      // Create notification for user
+      if (result.data) {
+        await supabase.from("notifications").insert({
+          user_id: report.user_id,
+          title: "Report Created Successfully",
+          message: `Your fraud report "${report.title}" has been submitted and is being reviewed.`,
+          type: "success",
+          reference_id: result.data.id,
+          reference_type: "report",
+        });
+      }
+
+      return result;
+    }, "create report");
   }
 
   /**
-   * Update report
+   * Update report with change tracking
    */
   async update(
     id: string,
     updates: ReportUpdate,
+    updatedBy?: string,
   ): Promise<ServiceResponse<Report>> {
-    const updateData = {
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
+    return this.executeQuery(async () => {
+      // Get original report for change tracking
+      const originalResult = await supabase
+        .from("reports")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("fraud_reports")
-          .update(updateData)
+      if (!originalResult.data) {
+        throw new Error("Report not found");
+      }
+
+      const updateData = {
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await supabase
+        .from("reports")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      // Track status changes
+      if (updates.status && originalResult.data.status !== updates.status) {
+        await supabase.from("report_status_history").insert({
+          report_id: id,
+          status: updates.status,
+          changed_by: updatedBy,
+          comments: `Status changed from ${originalResult.data.status} to ${updates.status}`,
+        });
+
+        // Notify user of status change
+        await supabase.from("notifications").insert({
+          user_id: originalResult.data.user_id,
+          title: "Report Status Updated",
+          message: `Your report status has been updated to: ${updates.status}`,
+          type: "info",
+          reference_id: id,
+          reference_type: "report",
+        });
+      }
+
+      return result;
+    }, "update report");
+  }
+
+  /**
+   * Soft delete report
+   */
+  async delete(id: string, userId?: string): Promise<ServiceResponse<boolean>> {
+    return this.executeQuery(async () => {
+      // Check if user owns the report
+      if (userId) {
+        const checkResult = await supabase
+          .from("reports")
+          .select("user_id")
           .eq("id", id)
-          .select()
-          .single(),
-      "update report",
-    );
+          .single();
+
+        if (checkResult.data?.user_id !== userId) {
+          throw new Error("Unauthorized: You can only delete your own reports");
+        }
+      }
+
+      // Instead of hard delete, mark as withdrawn
+      const result = await supabase
+        .from("reports")
+        .update({
+          status: "withdrawn",
+          withdrawn_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      return { data: true, error: result.error };
+    }, "delete report");
   }
 
   /**
-   * Delete report
+   * Get user's reports with stats
    */
-  async delete(id: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").delete().eq("id", id),
-      "delete report",
-    );
-  }
-
-  /**
-   * Get user's reports
-   */
-  async getUserReports(userId: string): Promise<ServiceResponse<Report[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("fraud_reports")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
-      "fetch user reports",
-    );
-  }
-
-  /**
-   * Get report statistics
-   */
-  async getStats(): Promise<
+  async getUserReports(userId: string): Promise<
     ServiceResponse<{
-      total: number;
-      pending: number;
-      resolved: number;
-      rejected: number;
-      byFraudCategory: Record<string, number>;
+      reports: Report[];
+      stats: {
+        total: number;
+        pending: number;
+        resolved: number;
+        rejected: number;
+      };
     }>
   > {
     return this.executeQuery(async () => {
       const result = await supabase
-        .from("fraud_reports")
-        .select("status, fraud_category");
+        .from("reports")
+        .select("*")
+        .eq("user_id", userId)
+        .neq("status", "withdrawn")
+        .order("created_at", { ascending: false });
 
       if (result.error) return result;
 
@@ -291,675 +428,546 @@ class ReportsService extends DatabaseService {
         pending: reports.filter((r) => r.status === "pending").length,
         resolved: reports.filter((r) => r.status === "resolved").length,
         rejected: reports.filter((r) => r.status === "rejected").length,
-        byFraudCategory: {} as Record<string, number>,
       };
 
-      // Calculate fraud category distribution
-      reports.forEach((report) => {
-        stats.byFraudCategory[report.fraud_category] =
-          (stats.byFraudCategory[report.fraud_category] || 0) + 1;
-      });
+      return { data: { reports, stats }, error: null };
+    }, "fetch user reports");
+  }
 
-      return { data: stats, error: null };
-    }, "fetch report statistics");
+  /**
+   * Search reports with full-text search
+   */
+  async search(
+    query: string,
+    filters: any = {},
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<ServiceResponse<{ reports: Report[]; total: number }>> {
+    const offset = (page - 1) * limit;
+
+    return this.executeQuery(async () => {
+      let dbQuery = supabase
+        .from("reports")
+        .select("*", { count: "exact" })
+        .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      // Apply additional filters
+      if (filters.fraud_type) {
+        dbQuery = dbQuery.eq("fraud_type", filters.fraud_type);
+      }
+      if (filters.status) {
+        dbQuery = dbQuery.eq("status", filters.status);
+      }
+
+      const result = await dbQuery;
+
+      return {
+        data: {
+          reports: result.data || [],
+          total: result.count || 0,
+        },
+        error: result.error,
+      };
+    }, "search reports");
   }
 }
 
 /**
- * User Profiles Service
+ * Enhanced Community Posts Service
+ */
+class CommunityPostsService extends DatabaseService {
+  /**
+   * Get all posts with advanced filtering
+   */
+  async getPosts(
+    filters: {
+      category_id?: string;
+      post_type?: string;
+      user_id?: string;
+      is_pinned?: boolean;
+      search?: string;
+    } = {},
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<ServiceResponse<{ posts: any[]; total: number }>> {
+    const offset = (page - 1) * limit;
+
+    return this.executeQuery(async () => {
+      let query = supabase
+        .from("community_posts")
+        .select(
+          `
+          *,
+          users!inner(full_name, email),
+          user_profiles!inner(profile_picture_url, reputation_score),
+          community_categories(name, color)
+        `,
+          { count: "exact" },
+        )
+        .order("is_pinned", { ascending: false })
+        .order("last_activity", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      // Apply filters
+      if (filters.category_id) {
+        query = query.eq("category_id", filters.category_id);
+      }
+      if (filters.post_type) {
+        query = query.eq("post_type", filters.post_type);
+      }
+      if (filters.user_id) {
+        query = query.eq("user_id", filters.user_id);
+      }
+      if (filters.is_pinned !== undefined) {
+        query = query.eq("is_pinned", filters.is_pinned);
+      }
+      if (filters.search) {
+        query = query.or(
+          `title.ilike.%${filters.search}%,content.ilike.%${filters.search}%`,
+        );
+      }
+
+      const result = await query;
+
+      return {
+        data: {
+          posts: result.data || [],
+          total: result.count || 0,
+        },
+        error: result.error,
+      };
+    }, "fetch community posts");
+  }
+
+  /**
+   * Create new community post
+   */
+  async createPost(post: {
+    user_id: string;
+    category_id?: string;
+    title: string;
+    content: string;
+    post_type?: string;
+    tags?: string[];
+  }): Promise<ServiceResponse<CommunityPost>> {
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("community_posts")
+        .insert({
+          ...post,
+          post_type: post.post_type || "discussion",
+          view_count: 0,
+          like_count: 0,
+          comment_count: 0,
+          bookmark_count: 0,
+          is_pinned: false,
+          is_locked: false,
+          is_featured: false,
+          last_activity: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      return result;
+    }, "create community post");
+  }
+
+  /**
+   * Update post view count
+   */
+  async incrementViewCount(postId: string): Promise<ServiceResponse<boolean>> {
+    return this.executeQuery(async () => {
+      const result = await supabase.rpc("increment_post_views", {
+        post_id: postId,
+      });
+      return { data: true, error: result.error };
+    }, "increment post views");
+  }
+
+  /**
+   * Like/Unlike post
+   */
+  async toggleLike(
+    postId: string,
+    userId: string,
+  ): Promise<ServiceResponse<{ liked: boolean; likeCount: number }>> {
+    return this.executeQuery(async () => {
+      // Check if already liked
+      const existingLike = await supabase
+        .from("community_likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", userId)
+        .single();
+
+      if (existingLike.data) {
+        // Unlike
+        await supabase
+          .from("community_likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", userId);
+
+        return { data: { liked: false, likeCount: -1 }, error: null };
+      } else {
+        // Like
+        await supabase
+          .from("community_likes")
+          .insert({ post_id: postId, user_id: userId });
+
+        return { data: { liked: true, likeCount: 1 }, error: null };
+      }
+    }, "toggle post like");
+  }
+}
+
+/**
+ * Enhanced Community Comments Service
+ */
+class CommunityCommentsService extends DatabaseService {
+  /**
+   * Get comments for a post
+   */
+  async getComments(postId: string): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("community_comments")
+        .select(
+          `
+          *,
+          users!inner(full_name),
+          user_profiles!inner(profile_picture_url, reputation_score),
+          replies:community_comments!parent_comment_id(
+            *,
+            users!inner(full_name),
+            user_profiles!inner(profile_picture_url, reputation_score)
+          )
+        `,
+        )
+        .eq("post_id", postId)
+        .is("parent_comment_id", null)
+        .order("created_at", { ascending: false });
+
+      return result;
+    }, "fetch post comments");
+  }
+
+  /**
+   * Add comment
+   */
+  async addComment(comment: {
+    post_id: string;
+    user_id: string;
+    content: string;
+    parent_comment_id?: string;
+  }): Promise<ServiceResponse<CommunityComment>> {
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("community_comments")
+        .insert({
+          ...comment,
+          like_count: 0,
+          is_edited: false,
+        })
+        .select()
+        .single();
+
+      // Update post's last activity
+      if (result.data) {
+        await supabase
+          .from("community_posts")
+          .update({
+            last_activity: new Date().toISOString(),
+            last_comment_at: new Date().toISOString(),
+            last_comment_by: comment.user_id,
+          })
+          .eq("id", comment.post_id);
+      }
+
+      return result;
+    }, "add comment");
+  }
+
+  /**
+   * Update comment
+   */
+  async updateComment(
+    commentId: string,
+    content: string,
+    userId: string,
+  ): Promise<ServiceResponse<CommunityComment>> {
+    return this.executeQuery(async () => {
+      // Check ownership
+      const checkResult = await supabase
+        .from("community_comments")
+        .select("user_id")
+        .eq("id", commentId)
+        .single();
+
+      if (checkResult.data?.user_id !== userId) {
+        throw new Error("Unauthorized: You can only edit your own comments");
+      }
+
+      const result = await supabase
+        .from("community_comments")
+        .update({
+          content,
+          is_edited: true,
+          edited_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", commentId)
+        .select()
+        .single();
+
+      return result;
+    }, "update comment");
+  }
+
+  /**
+   * Delete comment
+   */
+  async deleteComment(
+    commentId: string,
+    userId: string,
+  ): Promise<ServiceResponse<boolean>> {
+    return this.executeQuery(async () => {
+      // Check ownership
+      const checkResult = await supabase
+        .from("community_comments")
+        .select("user_id")
+        .eq("id", commentId)
+        .single();
+
+      if (checkResult.data?.user_id !== userId) {
+        throw new Error("Unauthorized: You can only delete your own comments");
+      }
+
+      const result = await supabase
+        .from("community_comments")
+        .delete()
+        .eq("id", commentId);
+
+      return { data: true, error: result.error };
+    }, "delete comment");
+  }
+}
+
+/**
+ * Enhanced User Profiles Service
  */
 class UserProfilesService extends DatabaseService {
   /**
-   * Get user profile
+   * Get comprehensive user profile
    */
-  async getProfile(userId: string): Promise<ServiceResponse<UserProfile>> {
-    return this.executeQuery(
-      () =>
+  async getProfile(userId: string): Promise<ServiceResponse<any>> {
+    return this.executeQuery(async () => {
+      const [profileResult, statsResult] = await Promise.all([
         supabase
           .from("user_profiles")
           .select("*")
           .eq("user_id", userId)
           .single(),
-      "fetch user profile",
-    );
+        supabase.from("users").select("*").eq("id", userId).single(),
+      ]);
+
+      if (profileResult.data && statsResult.data) {
+        return {
+          data: {
+            ...profileResult.data,
+            user: statsResult.data,
+          },
+          error: null,
+        };
+      }
+
+      return { data: null, error: profileResult.error || statsResult.error };
+    }, "fetch comprehensive user profile");
   }
 
   /**
-   * Create or update user profile
+   * Update user profile with validation
    */
-  async upsertProfile(
-    profile: UserProfileInsert | UserProfileUpdate,
-  ): Promise<ServiceResponse<UserProfile>> {
-    return this.executeQuery(
-      () => supabase.from("user_profiles").upsert(profile).select().single(),
-      "upsert user profile",
-    );
-  }
-
-  /**
-   * Update profile picture
-   */
-  async updateProfilePicture(
+  async updateProfile(
     userId: string,
-    pictureUrl: string,
+    updates: UserProfileUpdate,
   ): Promise<ServiceResponse<UserProfile>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("user_profiles")
-          .update({
-            profile_picture_url: pictureUrl,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("user_id", userId)
-          .select()
-          .single(),
-      "update profile picture",
-    );
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("user_profiles")
+        .upsert({
+          user_id: userId,
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      return result;
+    }, "update user profile");
+  }
+
+  /**
+   * Get user activity stats
+   */
+  async getUserStats(userId: string): Promise<
+    ServiceResponse<{
+      reports_count: number;
+      posts_count: number;
+      comments_count: number;
+      likes_received: number;
+      reputation_score: number;
+    }>
+  > {
+    return this.executeQuery(async () => {
+      const [reportsResult, postsResult, commentsResult, profileResult] =
+        await Promise.all([
+          supabase
+            .from("reports")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId),
+          supabase
+            .from("community_posts")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId),
+          supabase
+            .from("community_comments")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId),
+          supabase
+            .from("user_profiles")
+            .select("reputation_score, total_likes_received")
+            .eq("user_id", userId)
+            .single(),
+        ]);
+
+      return {
+        data: {
+          reports_count: reportsResult.count || 0,
+          posts_count: postsResult.count || 0,
+          comments_count: commentsResult.count || 0,
+          likes_received: profileResult.data?.total_likes_received || 0,
+          reputation_score: profileResult.data?.reputation_score || 0,
+        },
+        error: null,
+      };
+    }, "fetch user stats");
   }
 }
 
 /**
- * Notifications Service
+ * Enhanced Notifications Service
  */
 class NotificationsService extends DatabaseService {
   /**
-   * Get user notifications
+   * Get user notifications with pagination
    */
   async getUserNotifications(
     userId: string,
-    limit: number = 50,
-  ): Promise<ServiceResponse<Notification[]>> {
-    return this.executeQuery(
-      () =>
+    page: number = 1,
+    limit: number = 20,
+    unreadOnly: boolean = false,
+  ): Promise<
+    ServiceResponse<{
+      notifications: Notification[];
+      total: number;
+      unread_count: number;
+    }>
+  > {
+    const offset = (page - 1) * limit;
+
+    return this.executeQuery(async () => {
+      let query = supabase
+        .from("notifications")
+        .select("*", { count: "exact" })
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (unreadOnly) {
+        query = query.eq("is_read", false);
+      }
+
+      const [notificationsResult, unreadResult] = await Promise.all([
+        query,
         supabase
           .from("notifications")
-          .select("*")
+          .select("id", { count: "exact", head: true })
           .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(limit),
-      "fetch notifications",
-    );
-  }
+          .eq("is_read", false),
+      ]);
 
-  /**
-   * Create notification
-   */
-  async create(
-    notification: NotificationInsert,
-  ): Promise<ServiceResponse<Notification>> {
-    return this.executeQuery(
-      () =>
-        supabase.from("notifications").insert(notification).select().single(),
-      "create notification",
-    );
+      return {
+        data: {
+          notifications: notificationsResult.data || [],
+          total: notificationsResult.count || 0,
+          unread_count: unreadResult.count || 0,
+        },
+        error: notificationsResult.error,
+      };
+    }, "fetch user notifications");
   }
 
   /**
    * Mark notification as read
    */
-  async markAsRead(id: string): Promise<ServiceResponse<Notification>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("notifications")
-          .update({ read: true })
-          .eq("id", id)
-          .select()
-          .single(),
-      "mark notification as read",
-    );
+  async markAsRead(
+    notificationId: string,
+    userId: string,
+  ): Promise<ServiceResponse<boolean>> {
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notificationId)
+        .eq("user_id", userId);
+
+      return { data: true, error: result.error };
+    }, "mark notification as read");
   }
 
   /**
-   * Mark all notifications as read for a user
+   * Mark all notifications as read
    */
   async markAllAsRead(userId: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("notifications")
-          .update({ read: true })
-          .eq("user_id", userId),
-      "mark all notifications as read",
-    );
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", userId)
+        .eq("is_read", false);
+
+      return { data: true, error: result.error };
+    }, "mark all notifications as read");
   }
 
   /**
    * Delete notification
    */
-  async delete(id: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.from("notifications").delete().eq("id", id),
-      "delete notification",
-    );
-  }
-
-  /**
-   * Get unread count
-   */
-  async getUnreadCount(userId: string): Promise<ServiceResponse<number>> {
+  async deleteNotification(
+    notificationId: string,
+    userId: string,
+  ): Promise<ServiceResponse<boolean>> {
     return this.executeQuery(async () => {
       const result = await supabase
         .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("read", false);
+        .delete()
+        .eq("id", notificationId)
+        .eq("user_id", userId);
 
-      return { data: result.count || 0, error: result.error };
-    }, "fetch unread count");
+      return { data: true, error: result.error };
+    }, "delete notification");
   }
 }
 
-/**
- * Community Interactions Service
- */
-class CommunityInteractionsService extends DatabaseService {
-  /**
-   * Get interactions for a report
-   */
-  async getReportInteractions(
-    reportId: string,
-  ): Promise<ServiceResponse<CommunityInteraction[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("community_interactions")
-          .select("*")
-          .eq("report_id", reportId)
-          .order("created_at", { ascending: false }),
-      "fetch report interactions",
-    );
-  }
-
-  /**
-   * Create interaction
-   */
-  async create(
-    interaction: CommunityInteractionInsert,
-  ): Promise<ServiceResponse<CommunityInteraction>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("community_interactions")
-          .insert(interaction)
-          .select()
-          .single(),
-      "create interaction",
-    );
-  }
-
-  /**
-   * Update interaction
-   */
-  async update(
-    id: string,
-    content: string,
-  ): Promise<ServiceResponse<CommunityInteraction>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("community_interactions")
-          .update({
-            content,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", id)
-          .select()
-          .single(),
-      "update interaction",
-    );
-  }
-
-  /**
-   * Delete interaction
-   */
-  async delete(id: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.from("community_interactions").delete().eq("id", id),
-      "delete interaction",
-    );
-  }
-
-  /**
-   * Get user's interactions
-   */
-  async getUserInteractions(
-    userId: string,
-  ): Promise<ServiceResponse<CommunityInteraction[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("community_interactions")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
-      "fetch user interactions",
-    );
-  }
-}
-
-/**
- * Evidence Service
- */
-class EvidenceService extends DatabaseService {
-  /**
-   * Get report evidence
-   */
-  async getReportEvidence(
-    reportId: string,
-  ): Promise<ServiceResponse<ReportEvidence[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("report_evidence")
-          .select("*")
-          .eq("report_id", reportId)
-          .order("uploaded_at", { ascending: false }),
-      "fetch report evidence",
-    );
-  }
-
-  /**
-   * Upload evidence file
-   */
-  async uploadFile(
-    file: File,
-    reportId: string,
-    userId: string,
-  ): Promise<ServiceResponse<{ fileUrl: string; evidence: ReportEvidence }>> {
-    try {
-      if (isDemoMode) {
-        return {
-          data: null,
-          error: "File upload not available in demo mode",
-          success: false,
-        };
-      }
-
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${reportId}/${Date.now()}.${fileExt}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("evidence-files")
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("evidence-files").getPublicUrl(fileName);
-
-      // Save evidence record
-      const evidenceData: ReportEvidenceInsert = {
-        report_id: reportId,
-        file_name: file.name,
-        file_path: uploadData.path,
-        file_size: file.size,
-        file_type: fileExt || null,
-        mime_type: file.type || null,
-        uploaded_by: userId,
-      };
-
-      const { data: evidence, error: evidenceError } = await supabase
-        .from("report_evidence")
-        .insert(evidenceData)
-        .select()
-        .single();
-
-      if (evidenceError) throw evidenceError;
-
-      return {
-        data: {
-          fileUrl: publicUrl,
-          evidence: evidence,
-        },
-        error: null,
-        success: true,
-        message: "File uploaded successfully",
-      };
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "File upload failed";
-      return {
-        data: null,
-        error: message,
-        success: false,
-      };
-    }
-  }
-
-  /**
-   * Delete evidence
-   */
-  async delete(id: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(async () => {
-      // Get evidence record first
-      const { data: evidence, error: fetchError } = await supabase
-        .from("report_evidence")
-        .select("file_path")
-        .eq("id", id)
-        .single();
-
-      if (fetchError) return { error: fetchError };
-
-      // Delete file from storage
-      if (evidence) {
-        await supabase.storage
-          .from("evidence-files")
-          .remove([evidence.file_path]);
-      }
-
-      // Delete evidence record
-      return await supabase.from("report_evidence").delete().eq("id", id);
-    }, "delete evidence");
-  }
-}
-
-/**
- * Support Tickets Service
- */
-class SupportTicketsService extends DatabaseService {
-  /**
-   * Get user's support tickets
-   */
-  async getUserTickets(
-    userId: string,
-  ): Promise<ServiceResponse<SupportTicket[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("support_tickets")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
-      "fetch user tickets",
-    );
-  }
-
-  /**
-   * Create support ticket
-   */
-  async create(
-    ticket: SupportTicketInsert,
-  ): Promise<ServiceResponse<SupportTicket>> {
-    return this.executeQuery(
-      () => supabase.from("support_tickets").insert(ticket).select().single(),
-      "create support ticket",
-    );
-  }
-
-  /**
-   * Update ticket status
-   */
-  async updateStatus(
-    id: string,
-    status: string,
-  ): Promise<ServiceResponse<SupportTicket>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("support_tickets")
-          .update({
-            status,
-            updated_at: new Date().toISOString(),
-            resolved_at:
-              status === "resolved" ? new Date().toISOString() : null,
-          })
-          .eq("id", id)
-          .select()
-          .single(),
-      "update ticket status",
-    );
-  }
-}
-
-/**
- * Education Service
- */
-class EducationService extends DatabaseService {
-  /**
-   * Get published articles
-   */
-  async getPublishedArticles(
-    category?: string,
-    limit: number = 20,
-  ): Promise<ServiceResponse<EducationArticle[]>> {
-    return this.executeQuery(() => {
-      let query = supabase
-        .from("education_articles")
-        .select("*")
-        .eq("is_published", true)
-        .order("published_at", { ascending: false })
-        .limit(limit);
-
-      if (category) {
-        query = query.eq("category", category);
-      }
-
-      return query;
-    }, "fetch education articles");
-  }
-
-  /**
-   * Get featured articles
-   */
-  async getFeaturedArticles(): Promise<ServiceResponse<EducationArticle[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("education_articles")
-          .select("*")
-          .eq("is_published", true)
-          .eq("featured", true)
-          .order("published_at", { ascending: false })
-          .limit(5),
-      "fetch featured articles",
-    );
-  }
-
-  /**
-   * Get article by ID
-   */
-  async getArticleById(id: string): Promise<ServiceResponse<EducationArticle>> {
-    return this.executeQuery(
-      () =>
-        supabase.from("education_articles").select("*").eq("id", id).single(),
-      "fetch article",
-    );
-  }
-
-  /**
-   * Increment article view count
-   */
-  async incrementViewCount(id: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.rpc("increment_article_views", { article_id: id }),
-      "increment article views",
-    );
-  }
-}
-
-/**
- * FAQ Service
- */
-class FAQService extends DatabaseService {
-  /**
-   * Get all FAQs
-   */
-  async getAll(category?: string): Promise<ServiceResponse<FAQ[]>> {
-    return this.executeQuery(() => {
-      let query = supabase
-        .from("faqs")
-        .select("*")
-        .order("priority", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (category) {
-        query = query.eq("category", category);
-      }
-
-      return query;
-    }, "fetch FAQs");
-  }
-
-  /**
-   * Get featured FAQs
-   */
-  async getFeatured(): Promise<ServiceResponse<FAQ[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("faqs")
-          .select("*")
-          .eq("is_featured", true)
-          .order("priority", { ascending: false })
-          .limit(10),
-      "fetch featured FAQs",
-    );
-  }
-
-  /**
-   * Search FAQs
-   */
-  async search(query: string): Promise<ServiceResponse<FAQ[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("faqs")
-          .select("*")
-          .or(`question.ilike.%${query}%,answer.ilike.%${query}%`)
-          .order("priority", { ascending: false }),
-      "search FAQs",
-    );
-  }
-}
-
-/**
- * Real-time Subscriptions Service
- */
-class RealtimeService {
-  private subscriptions: Map<string, any> = new Map();
-
-  /**
-   * Subscribe to report updates
-   */
-  subscribeToReports(callback: (payload: any) => void, userId?: string) {
-    if (isDemoMode) {
-      console.log("Real-time subscriptions not available in demo mode");
-      return () => {};
-    }
-
-    let channel = supabase
-      .channel("fraud-reports-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "fraud_reports",
-          filter: userId ? `user_id=eq.${userId}` : undefined,
-        },
-        callback,
-      )
-      .subscribe();
-
-    this.subscriptions.set("fraud_reports", channel);
-
-    return () => {
-      channel.unsubscribe();
-      this.subscriptions.delete("fraud_reports");
-    };
-  }
-
-  /**
-   * Subscribe to notification updates
-   */
-  subscribeToNotifications(userId: string, callback: (payload: any) => void) {
-    if (isDemoMode) {
-      console.log("Real-time subscriptions not available in demo mode");
-      return () => {};
-    }
-
-    let channel = supabase
-      .channel("notifications-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        callback,
-      )
-      .subscribe();
-
-    this.subscriptions.set("notifications", channel);
-
-    return () => {
-      channel.unsubscribe();
-      this.subscriptions.delete("notifications");
-    };
-  }
-
-  /**
-   * Subscribe to community interactions
-   */
-  subscribeToCommunityInteractions(
-    reportId: string,
-    callback: (payload: any) => void,
-  ) {
-    if (isDemoMode) {
-      console.log("Real-time subscriptions not available in demo mode");
-      return () => {};
-    }
-
-    let channel = supabase
-      .channel("community-interactions-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "community_interactions",
-          filter: `report_id=eq.${reportId}`,
-        },
-        callback,
-      )
-      .subscribe();
-
-    this.subscriptions.set(`community-${reportId}`, channel);
-
-    return () => {
-      channel.unsubscribe();
-      this.subscriptions.delete(`community-${reportId}`);
-    };
-  }
-
-  /**
-   * Unsubscribe from all channels
-   */
-  unsubscribeAll() {
-    this.subscriptions.forEach((channel) => {
-      channel.unsubscribe();
-    });
-    this.subscriptions.clear();
-  }
-}
-
-// Export service instances
+// Export enhanced service instances
 export const reportsService = new ReportsService();
+export const communityPostsService = new CommunityPostsService();
+export const communityCommentsService = new CommunityCommentsService();
 export const userProfilesService = new UserProfilesService();
 export const notificationsService = new NotificationsService();
-export const communityService = new CommunityInteractionsService();
-export const evidenceService = new EvidenceService();
-export const supportTicketsService = new SupportTicketsService();
-export const educationService = new EducationService();
-export const faqService = new FAQService();
-export const realtimeService = new RealtimeService();
 
 // Export database service for health checks
 export const databaseService = new DatabaseService();
@@ -974,13 +982,8 @@ export type {
   UserProfileUpdate,
   Notification,
   NotificationInsert,
-  CommunityInteraction,
-  CommunityInteractionInsert,
-  ReportEvidence,
-  ReportEvidenceInsert,
-  SupportTicket,
-  SupportTicketInsert,
-  EducationArticle,
-  FAQ,
   ServiceResponse,
+  CommunityPost,
+  CommunityComment,
+  CommunityCategory,
 };
