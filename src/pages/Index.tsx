@@ -12,6 +12,7 @@ import GuestFeatures from "@/components/common/GuestFeatures";
 import { Button } from "@/components/ui/button";
 import { Plus, Shield, User, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import SupabaseConnectionStatus from "@/components/SupabaseConnectionStatus";
 
 interface AuthenticatedContentProps {
   onReportFraud: () => void;
