@@ -65,26 +65,22 @@ interface DisplayReport {
 
 // Convert database report to display format
 const convertToDisplayFormat = (report: Report): DisplayReport => {
-  const contactInfo = (report.contact_info as any) || {};
-  const location =
-    [report.city, report.state].filter(Boolean).join(", ") || "Unknown";
-
   return {
     id: report.id,
-    type: report.fraud_type
+    type: report.report_type
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
-    title: report.title,
+    title: `${report.fraud_category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
     description: report.description,
-    phoneNumber: contactInfo.phone_number || "Not provided",
-    location: location,
-    amount: report.amount_involved || undefined,
+    phoneNumber: report.fraudulent_number,
+    location: "Not specified", // Location not stored in this schema
+    amount: undefined, // Amount not stored in this schema
     status: report.status as DisplayReport["status"],
-    severity: "medium", // Default severity, can be enhanced with additional data
+    severity: (report.priority as DisplayReport["severity"]) || "medium",
     submittedAt: new Date(report.created_at),
     updatedAt: new Date(report.updated_at),
     referenceId: report.id,
-    evidenceCount: 0, // Will be updated when evidence service is implemented
+    evidenceCount: (report.evidence_urls || []).length,
   };
 };
 
