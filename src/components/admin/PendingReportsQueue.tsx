@@ -313,9 +313,9 @@ const PendingReportsQueue = () => {
                 No reports found
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                {filterStatus === "all"
+                {!reportFilters.status || reportFilters.status === "all"
                   ? "No reports have been submitted yet."
-                  : `No reports match the current filter: ${filterStatus}`}
+                  : `No reports match the current filter: ${reportFilters.status}`}
               </p>
             </div>
           ) : (
