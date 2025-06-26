@@ -63,49 +63,22 @@ interface DisplayReport {
   evidenceCount: number;
 }
 
-// Helper function to safely format strings
-const formatString = (
-  str: string | null | undefined,
-  fallback: string = "Unknown",
-): string => {
-  if (!str || typeof str !== "string" || str.trim() === "") return fallback;
-  try {
-    return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-  } catch (error) {
-    console.warn("Error formatting string:", str, error);
-    return fallback;
-  }
-};
-
 // Convert database report to display format
 const convertToDisplayFormat = (report: Report): DisplayReport => {
-  // Safely extract and format report type
-  const reportType = formatString(
-    report.report_type || report.fraud_type,
-    "General",
-  );
-
-  // Safely extract and format fraud category
-  const fraudCategory = formatString(
-    report.fraud_category || report.fraud_type || report.title,
-    "Fraud",
-  );
-
   return {
     id: report.id,
-    type: reportType,
-    title: report.title || `${fraudCategory} Report`,
-    description: report.description || "No description provided",
-    phoneNumber: report.fraudulent_number || null,
-    location:
-      report.city && report.state
-        ? `${report.city}, ${report.state}`
-        : "Not specified",
-    amount: report.amount_involved || undefined,
-    status: (report.status as DisplayReport["status"]) || "pending",
+    type: report.report_type
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase()),
+    title: `${report.fraud_category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
+    description: report.description,
+    phoneNumber: report.fraudulent_number,
+    location: "Not specified", // Location not stored in this schema
+    amount: undefined, // Amount not stored in this schema
+    status: report.status as DisplayReport["status"],
     severity: (report.priority as DisplayReport["severity"]) || "medium",
-    submittedAt: new Date(report.created_at || Date.now()),
-    updatedAt: new Date(report.updated_at || report.created_at || Date.now()),
+    submittedAt: new Date(report.created_at),
+    updatedAt: new Date(report.updated_at),
     referenceId: report.id,
     evidenceCount: (report.evidence_urls || []).length,
   };
@@ -135,36 +108,8 @@ const ReportsManagement = () => {
       setLoading(true);
       try {
         const result = await reportsService.getUserReports(user.id);
-        if (result.success && result.data && result.data.reports) {
-          const displayReports = result.data.reports
-            .filter((report) => report && typeof report === "object")
-            .map((report) => {
-              try {
-                return convertToDisplayFormat(report);
-              } catch (conversionError) {
-                console.error(
-                  "Error converting report:",
-                  report,
-                  conversionError,
-                );
-                // Return a safe fallback report
-                return {
-                  id: report.id || "unknown",
-                  type: "Unknown",
-                  title: report.title || "Untitled Report",
-                  description: report.description || "No description available",
-                  phoneNumber: null,
-                  location: "Not specified",
-                  amount: undefined,
-                  status: "pending" as const,
-                  severity: "medium" as const,
-                  submittedAt: new Date(),
-                  updatedAt: new Date(),
-                  referenceId: report.id || "unknown",
-                  evidenceCount: 0,
-                } as DisplayReport;
-              }
-            });
+        if (result.success && result.data) {
+          const displayReports = result.data.map(convertToDisplayFormat);
           setReports(displayReports);
         } else {
           console.error("Failed to load reports:", result.error);
