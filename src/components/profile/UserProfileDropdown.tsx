@@ -48,10 +48,11 @@ interface UserProfileDropdownProps {
 const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
   className,
 }) => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const { t, isRTL } = useLanguage();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const getUserInitials = (name?: string) => {
     if (!name) return "U";
@@ -65,9 +66,12 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
 
   const handleSignOut = async () => {
     try {
+      setIsSigningOut(true);
       await signOut();
     } catch (error) {
       console.error("Error signing out:", error);
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -301,11 +305,16 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
         {/* Sign Out */}
         <DropdownMenuItem
           onClick={handleSignOut}
+          disabled={isSigningOut}
           className={`flex items-center text-red-600 focus:text-red-600 ${isRTL ? "flex-row-reverse" : ""}`}
           role="menuitem"
         >
-          <LogOut className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-          <span>{t.header?.logout || "Sign Out"}</span>
+          <LogOut
+            className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"} ${isSigningOut ? "animate-spin" : ""}`}
+          />
+          <span>
+            {isSigningOut ? "Signing out..." : t.header?.logout || "Sign Out"}
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
