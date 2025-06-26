@@ -429,15 +429,36 @@ const FraudReportingForm = () => {
         setSubmitError(null);
       }, 2000);
     } catch (error) {
-      setSubmitError(
-        "An unexpected error occurred while submitting your report. Please try again.",
-      );
+      let errorMessage =
+        "An unexpected error occurred while submitting your report.";
+
+      if (error instanceof Error) {
+        if (
+          error.message.includes("network") ||
+          error.message.includes("fetch")
+        ) {
+          errorMessage =
+            "Network error. Please check your internet connection and try again.";
+        } else if (
+          error.message.includes("validation") ||
+          error.message.includes("required")
+        ) {
+          errorMessage = "Please check all required fields and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      setSubmitError(errorMessage);
       toast({
         title: "Submission Failed",
         description:
-          "Failed to submit report. Please try again or contact support.",
+          errorMessage + " If the problem persists, please contact support.",
         variant: "destructive",
+        duration: 10000,
       });
+
+      console.error("Report submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
