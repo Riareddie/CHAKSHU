@@ -32,6 +32,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import AuthGuard from "@/components/auth/AuthGuard";
+import DatabaseStatus from "@/components/common/DatabaseStatus";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
