@@ -76,7 +76,7 @@ const ProfileStats = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
       {/* Quick Stats */}
       <Card className="xl:col-span-2 transition-all duration-300 hover:shadow-lg">
         <CardHeader className="pb-4 sm:pb-6">
