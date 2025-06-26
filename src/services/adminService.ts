@@ -532,14 +532,26 @@ class AdminService {
     limit: number = 20,
   ): Promise<ServiceResponse<{ users: AdminUser[]; total: number }>> {
     return this.executeQuery(async () => {
-      // This would be a more complex query in a real implementation
-      // For now, we'll get basic user data from available tables
-      const { data: userPrefs, error } = await supabase
-        .from("user_analytics_preferences")
-        .select("user_id, created_at")
-        .order("created_at", { ascending: false });
+      let userPrefs = [];
+      let reportCounts = [];
 
-      if (error) throw error;
+      // Try to fetch user preferences with error handling
+      try {
+        const { data, error } = await supabase
+          .from("user_analytics_preferences")
+          .select("user_id, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("User preferences query error:", error);
+          console.warn("Using empty user preferences due to error");
+        } else {
+          userPrefs = data || [];
+        }
+      } catch (error) {
+        console.error("User preferences query exception:", error);
+        userPrefs = [];
+      }
 
       // Get report counts per user
       const { data: reportCounts } = await supabase
