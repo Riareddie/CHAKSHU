@@ -266,11 +266,10 @@ export function useAdminReports() {
   ) => {
     try {
       const { error } = await supabase
-        .from("reports")
+        .from("fraud_reports")
         .update({
           status: newStatus,
           updated_at: new Date().toISOString(),
-          authority_comments: comments,
         })
         .eq("id", reportId);
 
