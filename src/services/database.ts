@@ -781,6 +781,108 @@ class CommunityCommentsService extends DatabaseService {
 }
 
 /**
+ * Enhanced User Profiles Service
+ */
+class UserProfilesService extends DatabaseService {
+  /**
+   * Get comprehensive user profile
+   */
+  async getProfile(userId: string): Promise<ServiceResponse<any>> {
+    return this.executeQuery(async () => {
+      const [profileResult, statsResult] = await Promise.all([
+        supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .single(),
+        supabase.from("users").select("*").eq("id", userId).single(),
+      ]);
+
+      if (profileResult.data && statsResult.data) {
+        return {
+          data: {
+            ...profileResult.data,
+            user: statsResult.data,
+          },
+          error: null,
+        };
+      }
+
+      return { data: null, error: profileResult.error || statsResult.error };
+    }, "fetch comprehensive user profile");
+  }
+
+  /**
+   * Update user profile with validation
+   */
+  async updateProfile(
+    userId: string,
+    updates: UserProfileUpdate,
+  ): Promise<ServiceResponse<UserProfile>> {
+    return this.executeQuery(async () => {
+      const result = await supabase
+        .from("user_profiles")
+        .upsert({
+          user_id: userId,
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      return result;
+    }, "update user profile");
+  }
+
+  /**
+   * Get user activity stats
+   */
+  async getUserStats(userId: string): Promise<
+    ServiceResponse<{
+      reports_count: number;
+      posts_count: number;
+      comments_count: number;
+      likes_received: number;
+      reputation_score: number;
+    }>
+  > {
+    return this.executeQuery(async () => {
+      const [reportsResult, postsResult, commentsResult, profileResult] =
+        await Promise.all([
+          supabase
+            .from("reports")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId),
+          supabase
+            .from("community_posts")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId),
+          supabase
+            .from("community_comments")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId),
+          supabase
+            .from("user_profiles")
+            .select("reputation_score, total_likes_received")
+            .eq("user_id", userId)
+            .single(),
+        ]);
+
+      return {
+        data: {
+          reports_count: reportsResult.count || 0,
+          posts_count: postsResult.count || 0,
+          comments_count: commentsResult.count || 0,
+          likes_received: profileResult.data?.total_likes_received || 0,
+          reputation_score: profileResult.data?.reputation_score || 0,
+        },
+        error: null,
+      };
+    }, "fetch user stats");
+  }
+}
+
+/**
  * Enhanced Notifications Service
  */
 class NotificationsService extends DatabaseService {
