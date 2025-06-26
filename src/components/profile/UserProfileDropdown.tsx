@@ -87,6 +87,26 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
     user.email?.split("@")[0] ||
     "User";
 
+  // Calculate profile completion percentage
+  const getProfileCompletion = () => {
+    let completion = 0;
+    const checks = [
+      user.email, // Email (required)
+      user.user_metadata?.full_name, // Name
+      user.user_metadata?.phone, // Phone
+      user.user_metadata?.avatar_url, // Avatar
+      user.user_metadata?.bio, // Bio
+    ];
+
+    checks.forEach((check) => {
+      if (check) completion += 20;
+    });
+
+    return Math.min(completion, 100);
+  };
+
+  const profileCompletion = getProfileCompletion();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -128,11 +148,14 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
               <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
                 {user.email}
               </p>
-              {user.user_metadata?.verified && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✓ Verified Account
+              <div className="flex items-center justify-between mt-2">
+                {user.user_metadata?.verified && (
+                  <p className="text-xs text-green-600">✓ Verified Account</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Profile: {profileCompletion}% complete
                 </p>
-              )}
+              </div>
             </div>
           </div>
         </div>
