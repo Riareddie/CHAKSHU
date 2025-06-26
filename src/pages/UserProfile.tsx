@@ -127,34 +127,51 @@ const UserProfile = () => {
               </TabsList>
             </div>
 
-            {/* Tab Content with enhanced spacing */}
+            {/* Tab Content with enhanced spacing and scrolling */}
             <div className="transition-all duration-300 ease-in-out">
-              <TabsContent value="overview" className="mt-0 focus:outline-none">
-                <ProfileOverview />
-              </TabsContent>
+              <div className="max-h-[70vh] overflow-y-auto scroll-smooth">
+                <TabsContent
+                  value="overview"
+                  className="mt-0 focus:outline-none"
+                >
+                  <ProfileOverview />
+                </TabsContent>
 
-              <TabsContent value="account" className="mt-0 focus:outline-none">
-                <AccountSettings />
-              </TabsContent>
+                <TabsContent
+                  value="account"
+                  className="mt-0 focus:outline-none"
+                >
+                  <AccountSettings />
+                </TabsContent>
 
-              <TabsContent value="security" className="mt-0 focus:outline-none">
-                <SecuritySettings />
-              </TabsContent>
+                <TabsContent
+                  value="security"
+                  className="mt-0 focus:outline-none"
+                >
+                  <SecuritySettings />
+                </TabsContent>
 
-              <TabsContent value="privacy" className="mt-0 focus:outline-none">
-                <PrivacySettings />
-              </TabsContent>
+                <TabsContent
+                  value="privacy"
+                  className="mt-0 focus:outline-none"
+                >
+                  <PrivacySettings />
+                </TabsContent>
 
-              <TabsContent
-                value="notifications"
-                className="mt-0 focus:outline-none"
-              >
-                <NotificationPreferences />
-              </TabsContent>
+                <TabsContent
+                  value="notifications"
+                  className="mt-0 focus:outline-none"
+                >
+                  <NotificationPreferences />
+                </TabsContent>
 
-              <TabsContent value="activity" className="mt-0 focus:outline-none">
-                <ActivityHistory />
-              </TabsContent>
+                <TabsContent
+                  value="activity"
+                  className="mt-0 focus:outline-none"
+                >
+                  <ActivityHistory />
+                </TabsContent>
+              </div>
             </div>
           </Tabs>
         </div>
