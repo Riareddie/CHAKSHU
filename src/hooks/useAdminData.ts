@@ -353,7 +353,7 @@ export function useAdminUsers() {
 
       // Get reports count per user
       const { data: reportCounts, error: reportsError } = await supabase
-        .from("reports")
+        .from("fraud_reports")
         .select("user_id")
         .not("user_id", "is", null);
 
