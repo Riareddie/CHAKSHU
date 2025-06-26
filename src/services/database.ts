@@ -8,6 +8,7 @@ import {
   supabase,
   handleSupabaseError,
   safeQuery,
+  isDemoMode,
 } from "@/integrations/supabase/client";
 import type {
   Database,
@@ -61,6 +62,19 @@ class DatabaseService {
     queryFn: () => Promise<any>,
     operation: string,
   ): Promise<ServiceResponse<T>> {
+    if (isDemoMode) {
+      console.log(
+        `Demo mode: ${operation} operation simulated (Supabase not configured)`,
+      );
+      return {
+        data: null,
+        error:
+          "Supabase not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.",
+        success: false,
+        message: "Database operations require Supabase configuration",
+      };
+    }
+
     try {
       const result = await safeQuery(queryFn);
 
