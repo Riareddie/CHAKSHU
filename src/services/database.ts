@@ -1102,6 +1102,8 @@ export type {
   UserProfileUpdate,
   Notification,
   NotificationInsert,
+  ReportEvidence,
+  ReportEvidenceInsert,
   ServiceResponse,
   CommunityPost,
   CommunityComment,
