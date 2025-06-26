@@ -255,15 +255,50 @@ class ReportsService extends DatabaseService {
    * Get user's reports
    */
   async getUserReports(userId: string): Promise<ServiceResponse<Report[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("fraud_reports")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
-      "fetch user reports",
-    );
+    if (!userId) {
+      return {
+        data: [],
+        error: "User ID is required",
+        success: false,
+        message: "No user ID provided",
+      };
+    }
+
+    return this.executeQuery(async () => {
+      // First try to get reports with RLS policies
+      const result = await supabase
+        .from("fraud_reports")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      // If there's a policy error, provide helpful feedback
+      if (result.error) {
+        console.error("Database fetch user reports error:", result.error);
+
+        // Check for specific RLS policy errors
+        if (
+          result.error.message?.includes("infinite recursion") ||
+          result.error.message?.includes("policy")
+        ) {
+          throw new Error(
+            "Database configuration error. Please contact support.",
+          );
+        }
+
+        // Check for authentication errors
+        if (
+          result.error.message?.includes("JWT") ||
+          result.error.message?.includes("auth")
+        ) {
+          throw new Error("Authentication required. Please log in again.");
+        }
+
+        throw new Error(result.error.message || "Failed to fetch reports");
+      }
+
+      return result;
+    }, "fetch user reports");
   }
 
   /**
