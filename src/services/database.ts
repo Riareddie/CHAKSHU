@@ -1148,58 +1148,82 @@ class EducationService extends DatabaseService {
     category?: string,
     limit: number = 20,
   ): Promise<ServiceResponse<any[]>> {
-    return this.executeQuery(() => {
-      let query = supabase
-        .from("education_articles")
-        .select("*")
-        .eq("is_published", true)
-        .order("published_at", { ascending: false })
-        .limit(limit);
+    // Return mock data since education_articles table doesn't exist yet
+    const mockArticles = [
+      {
+        id: "1",
+        title: "How to Identify Phishing Emails",
+        content: "Learn the warning signs of phishing attempts...",
+        category: "phishing",
+        is_published: true,
+        featured: true,
+        published_at: new Date().toISOString(),
+        view_count: 245,
+      },
+      {
+        id: "2",
+        title: "UPI Fraud Prevention Guide",
+        content: "Essential tips to keep your UPI transactions safe...",
+        category: "upi",
+        is_published: true,
+        featured: false,
+        published_at: new Date().toISOString(),
+        view_count: 189,
+      },
+    ];
 
-      if (category) {
-        query = query.eq("category", category);
-      }
+    const filteredArticles = category
+      ? mockArticles.filter((a) => a.category === category)
+      : mockArticles;
 
-      return query;
-    }, "fetch education articles");
+    return Promise.resolve({
+      data: filteredArticles.slice(0, limit),
+      error: null,
+      success: true,
+    });
   }
 
   /**
    * Get featured articles
    */
   async getFeaturedArticles(): Promise<ServiceResponse<any[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("education_articles")
-          .select("*")
-          .eq("is_published", true)
-          .eq("featured", true)
-          .order("published_at", { ascending: false })
-          .limit(5),
-      "fetch featured articles",
-    );
+    const response = await this.getPublishedArticles();
+    if (response.success && response.data) {
+      return {
+        ...response,
+        data: response.data.filter((article: any) => article.featured),
+      };
+    }
+    return response;
   }
 
   /**
    * Get article by ID
    */
   async getArticleById(id: string): Promise<ServiceResponse<any>> {
-    return this.executeQuery(
-      () =>
-        supabase.from("education_articles").select("*").eq("id", id).single(),
-      "fetch article",
-    );
+    const response = await this.getPublishedArticles();
+    if (response.success && response.data) {
+      const article = response.data.find((a: any) => a.id === id);
+      return {
+        data: article || null,
+        error: article ? null : "Article not found",
+        success: !!article,
+      };
+    }
+    return response;
   }
 
   /**
    * Increment article view count
    */
   async incrementViewCount(id: string): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.rpc("increment_article_views", { article_id: id }),
-      "increment article views",
-    );
+    // Mock implementation
+    return Promise.resolve({
+      data: true,
+      error: null,
+      success: true,
+      message: "View count incremented (demo)",
+    });
   }
 }
 
