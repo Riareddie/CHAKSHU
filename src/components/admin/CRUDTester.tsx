@@ -34,6 +34,7 @@ import {
   FileText,
   MessageSquare,
   Bell,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -55,6 +56,8 @@ import {
 } from "@/services/database";
 
 import { authService } from "@/services/auth";
+import { isDemoMode } from "@/integrations/supabase/client";
+import SupabaseStatus from "./SupabaseStatus";
 
 interface TestResult {
   operation: string;
@@ -430,13 +433,24 @@ const CRUDTester: React.FC = () => {
             </Button>
           </div>
 
-          <Tabs defaultValue="config" className="w-full">
+          <Tabs
+            defaultValue={isDemoMode ? "status" : "config"}
+            className="w-full"
+          >
             <TabsList>
+              <TabsTrigger value="status" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Supabase Status
+              </TabsTrigger>
               <TabsTrigger value="config">Test Configuration</TabsTrigger>
               <TabsTrigger value="results">
                 Test Results ({results.length})
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="status">
+              <SupabaseStatus />
+            </TabsContent>
 
             <TabsContent value="config" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
