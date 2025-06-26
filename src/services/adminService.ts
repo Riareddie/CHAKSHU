@@ -132,7 +132,7 @@ class AdminService {
 
       // Test if we can make basic queries first
       try {
-        await supabase.from("reports").select("id").limit(1);
+        await supabase.from("fraud_reports").select("id").limit(1);
       } catch (testError) {
         console.warn(
           `Database test failed for ${operation}, falling back to demo mode:`,
@@ -338,7 +338,7 @@ class AdminService {
       // Try to fetch reports with proper error handling
       try {
         const { data: reportsData, error: reportsError } = await supabase
-          .from("reports")
+          .from("fraud_reports")
           .select("status, amount_involved, created_at");
 
         if (reportsError) {
@@ -368,8 +368,8 @@ class AdminService {
       // Try to fetch user count with proper error handling
       try {
         const { count, error: usersError } = await supabase
-          .from("user_analytics_preferences")
-          .select("*", { count: "exact", head: true });
+          .from("fraud_reports")
+          .select("user_id", { count: "exact", head: true });
 
         if (usersError) {
           console.error("User count query error - Full object:", usersError);
@@ -455,7 +455,7 @@ class AdminService {
 
       try {
         let query = supabase
-          .from("reports")
+          .from("fraud_reports")
           .select("*", { count: "exact" })
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
@@ -547,7 +547,7 @@ class AdminService {
 
         // Update the report
         const { data: updatedReport, error: updateError } = await supabase
-          .from("reports")
+          .from("fraud_reports")
           .update({
             status: newStatus as any,
             authority_comments: comments,
@@ -608,10 +608,10 @@ class AdminService {
       let userPrefs = [];
       let reportCounts = [];
 
-      // Try to fetch user preferences with error handling
+      // Try to fetch user data from fraud_reports with error handling
       try {
         const { data, error } = await supabase
-          .from("user_analytics_preferences")
+          .from("fraud_reports")
           .select("user_id, created_at")
           .order("created_at", { ascending: false });
 
@@ -641,7 +641,7 @@ class AdminService {
       // Try to get report counts per user with error handling
       try {
         const { data, error } = await supabase
-          .from("reports")
+          .from("fraud_reports")
           .select("user_id, amount_involved")
           .not("user_id", "is", null);
 

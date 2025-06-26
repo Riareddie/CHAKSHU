@@ -15,8 +15,8 @@ export async function checkDatabaseTables() {
 
       // Try a simpler approach - test common tables
       const tablesToCheck = [
-        "reports",
-        "user_analytics_preferences",
+        "fraud_reports",
+        "otp_verification",
         "notifications",
         "report_evidence",
         "community_interactions",
