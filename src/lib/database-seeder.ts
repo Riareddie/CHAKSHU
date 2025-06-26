@@ -373,7 +373,7 @@ export async function clearSeedData(): Promise<DatabaseSeedingResult> {
       .from("user_analytics_preferences")
       .delete()
       .eq("user_id", user.id);
-    await supabase.from("reports").delete().eq("user_id", user.id);
+    await supabase.from("fraud_reports").delete().eq("user_id", user.id);
 
     return {
       success: true,
