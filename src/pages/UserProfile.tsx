@@ -53,7 +53,7 @@ const UserProfile = () => {
       <Header />
 
       <AuthGuard message="Please sign in to access your profile and manage your account settings.">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 overflow-y-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 pb-12 sm:pb-16 lg:pb-20">
           {/* Profile Header */}
           <div className="mb-6 sm:mb-8 lg:mb-12">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
