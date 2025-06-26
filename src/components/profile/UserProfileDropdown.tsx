@@ -261,11 +261,16 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
         <DropdownMenuItem asChild>
           <Link
             to="/profile"
-            className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
+            className={`flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}
             role="menuitem"
           >
-            <User className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-            <span>Full Profile Page</span>
+            <div
+              className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
+            >
+              <User className={`h-4 w-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+              <span>Full Profile Page</span>
+            </div>
+            <ChevronRight className="h-4 w-4" />
           </Link>
         </DropdownMenuItem>
 
