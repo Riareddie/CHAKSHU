@@ -379,20 +379,32 @@ const FraudReportingForm = () => {
         return categoryMap[category] || "other";
       };
 
-      // Map form data to database schema
+      // Generate title from fraud type and category
+      const generateTitle = (fraudType: string, category: string): string => {
+        return `${fraudType} - ${category} Report`;
+      };
+
+      // Map form data to database schema that matches service expectations
       const reportData: ReportInsert = {
         user_id: user.id,
+        title:
+          formData.title ||
+          generateTitle(formData.fraudType, formData.category),
+        description: formData.messageContent,
+        fraud_type: getFraudCategory(formData.category), // Use mapped category as fraud_type
+        incident_date:
+          formData.dateTime?.toISOString() || new Date().toISOString(),
+        amount_involved: formData.amount || null,
+        status: "pending",
+        // Additional fields for compatibility
         report_type: getReportType(formData.fraudType),
         fraudulent_number: formData.phoneNumber,
-        incident_date:
-          formData.dateTime?.toISOString().split("T")[0] ||
-          new Date().toISOString().split("T")[0],
-        incident_time: formData.dateTime?.toTimeString().split(" ")[0] || null,
-        description: formData.messageContent,
         fraud_category: getFraudCategory(formData.category),
         evidence_urls: [],
-        status: "pending",
         priority: "medium",
+        city: formData.city || "",
+        state: formData.state || "",
+        currency: "INR",
       };
 
       // Submit report to database
