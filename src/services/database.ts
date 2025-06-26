@@ -232,7 +232,7 @@ class ReportsService extends DatabaseService {
     return this.executeQuery(
       () =>
         supabase
-          .from("reports")
+          .from("fraud_reports")
           .update(updateData)
           .eq("id", id)
           .select()
