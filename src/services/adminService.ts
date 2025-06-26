@@ -553,11 +553,23 @@ class AdminService {
         userPrefs = [];
       }
 
-      // Get report counts per user
-      const { data: reportCounts } = await supabase
-        .from("reports")
-        .select("user_id, amount_involved")
-        .not("user_id", "is", null);
+      // Try to get report counts per user with error handling
+      try {
+        const { data, error } = await supabase
+          .from("reports")
+          .select("user_id, amount_involved")
+          .not("user_id", "is", null);
+
+        if (error) {
+          console.error("Report counts query error:", error);
+          console.warn("Using empty report counts due to error");
+        } else {
+          reportCounts = data || [];
+        }
+      } catch (error) {
+        console.error("Report counts query exception:", error);
+        reportCounts = [];
+      }
 
       // Build admin user list
       const users: AdminUser[] = (userPrefs || []).map((pref) => {
