@@ -308,15 +308,31 @@ const ReportingHistoryTable = ({ filters }: ReportingHistoryTableProps) => {
   };
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    // Simulate refresh delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+    if (!user) return;
 
-    toast({
-      title: "Data Refreshed",
-      description: "Your personal reporting history has been updated.",
-    });
+    setIsRefreshing(true);
+    try {
+      const result = await reportsService.getUserReports(user.id);
+      if (result.success && result.data) {
+        const mockReports = result.data.map(convertToMockFormat);
+        setAllReports(mockReports);
+        toast({
+          title: "Data Refreshed",
+          description: "Your personal reporting history has been updated.",
+        });
+      } else {
+        throw new Error(result.error || "Failed to refresh reports");
+      }
+    } catch (error) {
+      console.error("Error refreshing reports:", error);
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh your reports. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleViewDetails = (report: Report) => {
