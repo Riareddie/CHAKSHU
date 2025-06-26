@@ -16,6 +16,7 @@ import TypeSelectionStep from "./form-steps/TypeSelectionStep";
 import CategorySelectionStep from "./form-steps/CategorySelectionStep";
 import DetailsFormStep from "./form-steps/DetailsFormStep";
 import DatabaseStatus from "@/components/common/DatabaseStatus";
+import QuickFixAlert from "@/components/common/QuickFixAlert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
