@@ -280,6 +280,11 @@ class ReportsService extends DatabaseService {
         city: "New Delhi",
         currency: "INR",
         // Additional properties for compatibility
+        report_type: "whatsapp",
+        fraud_category: "romance_scam",
+        fraudulent_number: "+91-9876543212",
+        priority: "low",
+        evidence_urls: [],
         authority_action: null,
         authority_comments: null,
         contact_info: null,
