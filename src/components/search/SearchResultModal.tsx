@@ -1,37 +1,6 @@
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  AlertTriangle,
-  MapPin,
-  Calendar,
-  User,
-  MessageSquare,
-  Share2,
-  Flag,
-  BookmarkPlus,
-  ExternalLink,
-  Phone,
-  Mail,
-  Shield,
-  TrendingUp,
-  Clock,
-  Eye,
-} from "lucide-react";
-import { format } from "date-fns";
-import CommentSection from "./CommentSection";
-import { useToast } from "@/hooks/use-toast";
+// Legacy SearchResultModal - redirects to Enhanced version for better responsive design
+import React from "react";
+import EnhancedSearchResultModal from "./EnhancedSearchResultModal";
 
 interface SearchResult {
   id: string;
