@@ -66,6 +66,8 @@ const PendingReportsQueue = () => {
 
   // Filter and sort reports
   const filteredAndSortedReports = useMemo(() => {
+    if (!reports || !Array.isArray(reports)) return [];
+
     let filtered = reports.filter((report) => {
       if (reportFilters.status === "all" || !reportFilters.status) return true;
       if (reportFilters.status === "pending")
