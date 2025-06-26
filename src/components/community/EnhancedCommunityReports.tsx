@@ -393,16 +393,19 @@ const EnhancedCommunityReports: React.FC = () => {
             </Select>
 
             <Select
-              value={filters.severity}
+              value={filters.severity || "all"}
               onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, severity: value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  severity: value === "all" ? "" : value,
+                }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Levels</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
                 <SelectItem value="critical">Critical</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
