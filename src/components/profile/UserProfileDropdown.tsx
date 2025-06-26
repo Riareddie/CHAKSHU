@@ -121,6 +121,11 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
               <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
                 {user.email}
               </p>
+              {user.user_metadata?.verified && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Verified Account
+                </p>
+              )}
             </div>
           </div>
         </div>
