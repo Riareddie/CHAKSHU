@@ -1381,6 +1381,9 @@ export const educationService = new EducationService();
 export const faqService = new FAQService();
 export const realtimeService = new RealtimeService();
 
+// Legacy alias for backward compatibility
+export const communityService = communityCommentsService;
+
 // Export database service for health checks
 export const databaseService = new DatabaseService();
 
