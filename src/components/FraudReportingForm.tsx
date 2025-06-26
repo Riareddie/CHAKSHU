@@ -359,12 +359,16 @@ const FraudReportingForm = () => {
       // Map fraud type to report type
       const getReportType = (fraudType: string): string => {
         const typeMap: Record<string, string> = {
-          "Call Fraud": "call",
-          "SMS Fraud": "sms",
-          "WhatsApp Scam": "whatsapp",
-          "Email Spam": "email",
+          phone_call: "call",
+          sms_fraud: "sms",
+          email_phishing: "email",
+          online_fraud: "other",
+          financial_fraud: "other",
+          identity_theft: "other",
+          job_fraud: "other",
+          other: "other",
         };
-        return typeMap[fraudType] || "call";
+        return typeMap[fraudType] || "other";
       };
 
       // Map category to fraud_category
