@@ -119,7 +119,7 @@ export async function seedDatabase(): Promise<DatabaseSeedingResult> {
     });
 
     const { data: insertedReports, error: reportsError } = await supabase
-      .from("reports")
+      .from("fraud_reports")
       .insert(reportsToSeed)
       .select();
 
