@@ -223,15 +223,14 @@ export function useAdminReports() {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from("reports")
+        .from("fraud_reports")
         .select(
           `
           id,
-          title,
           description,
-          fraud_type,
+          report_type,
+          fraud_category,
           status,
-          amount_involved,
           currency,
           city,
           state,
