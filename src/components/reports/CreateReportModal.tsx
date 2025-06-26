@@ -114,13 +114,16 @@ const CreateReportModal = ({
         };
       }
 
-      const { error } = await supabase.from("fraud_reports").insert(reportData);
+      const result = await reportsService.create(reportData);
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create report");
+      }
 
       toast({
         title: "Report Created",
-        description: "Your fraud report has been submitted successfully",
+        description:
+          result.message || "Your fraud report has been submitted successfully",
       });
 
       // Reset form
@@ -140,7 +143,7 @@ const CreateReportModal = ({
     } catch (error: any) {
       toast({
         title: "Submission Failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
