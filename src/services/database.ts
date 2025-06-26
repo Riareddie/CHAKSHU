@@ -1081,6 +1081,294 @@ class EvidenceService extends DatabaseService {
   }
 }
 
+/**
+ * Support Tickets Service
+ */
+class SupportTicketsService extends DatabaseService {
+  /**
+   * Get user's support tickets
+   */
+  async getUserTickets(userId: string): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(
+      () =>
+        supabase
+          .from("support_tickets")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+      "fetch user tickets",
+    );
+  }
+
+  /**
+   * Create support ticket
+   */
+  async create(ticket: any): Promise<ServiceResponse<any>> {
+    return this.executeQuery(
+      () => supabase.from("support_tickets").insert(ticket).select().single(),
+      "create support ticket",
+    );
+  }
+
+  /**
+   * Update ticket status
+   */
+  async updateStatus(
+    id: string,
+    status: string,
+  ): Promise<ServiceResponse<any>> {
+    return this.executeQuery(
+      () =>
+        supabase
+          .from("support_tickets")
+          .update({
+            status,
+            updated_at: new Date().toISOString(),
+            resolved_at:
+              status === "resolved" ? new Date().toISOString() : null,
+          })
+          .eq("id", id)
+          .select()
+          .single(),
+      "update ticket status",
+    );
+  }
+}
+
+/**
+ * Education Service
+ */
+class EducationService extends DatabaseService {
+  /**
+   * Get published articles
+   */
+  async getPublishedArticles(
+    category?: string,
+    limit: number = 20,
+  ): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(() => {
+      let query = supabase
+        .from("education_articles")
+        .select("*")
+        .eq("is_published", true)
+        .order("published_at", { ascending: false })
+        .limit(limit);
+
+      if (category) {
+        query = query.eq("category", category);
+      }
+
+      return query;
+    }, "fetch education articles");
+  }
+
+  /**
+   * Get featured articles
+   */
+  async getFeaturedArticles(): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(
+      () =>
+        supabase
+          .from("education_articles")
+          .select("*")
+          .eq("is_published", true)
+          .eq("featured", true)
+          .order("published_at", { ascending: false })
+          .limit(5),
+      "fetch featured articles",
+    );
+  }
+
+  /**
+   * Get article by ID
+   */
+  async getArticleById(id: string): Promise<ServiceResponse<any>> {
+    return this.executeQuery(
+      () =>
+        supabase.from("education_articles").select("*").eq("id", id).single(),
+      "fetch article",
+    );
+  }
+
+  /**
+   * Increment article view count
+   */
+  async incrementViewCount(id: string): Promise<ServiceResponse<boolean>> {
+    return this.executeQuery(
+      () => supabase.rpc("increment_article_views", { article_id: id }),
+      "increment article views",
+    );
+  }
+}
+
+/**
+ * FAQ Service
+ */
+class FAQService extends DatabaseService {
+  /**
+   * Get all FAQs
+   */
+  async getAll(category?: string): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(() => {
+      let query = supabase
+        .from("faqs")
+        .select("*")
+        .order("priority", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (category) {
+        query = query.eq("category", category);
+      }
+
+      return query;
+    }, "fetch FAQs");
+  }
+
+  /**
+   * Get featured FAQs
+   */
+  async getFeatured(): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(
+      () =>
+        supabase
+          .from("faqs")
+          .select("*")
+          .eq("is_featured", true)
+          .order("priority", { ascending: false })
+          .limit(10),
+      "fetch featured FAQs",
+    );
+  }
+
+  /**
+   * Search FAQs
+   */
+  async search(query: string): Promise<ServiceResponse<any[]>> {
+    return this.executeQuery(
+      () =>
+        supabase
+          .from("faqs")
+          .select("*")
+          .or(`question.ilike.%${query}%,answer.ilike.%${query}%`)
+          .order("priority", { ascending: false }),
+      "search FAQs",
+    );
+  }
+}
+
+/**
+ * Real-time Subscriptions Service
+ */
+class RealtimeService {
+  private subscriptions: Map<string, any> = new Map();
+
+  /**
+   * Subscribe to report updates
+   */
+  subscribeToReports(callback: (payload: any) => void, userId?: string) {
+    if (isDemoMode) {
+      console.log("Real-time subscriptions not available in demo mode");
+      return () => {};
+    }
+
+    let channel = supabase
+      .channel("fraud-reports-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "reports",
+          filter: userId ? `user_id=eq.${userId}` : undefined,
+        },
+        callback,
+      )
+      .subscribe();
+
+    this.subscriptions.set("reports", channel);
+
+    return () => {
+      channel.unsubscribe();
+      this.subscriptions.delete("reports");
+    };
+  }
+
+  /**
+   * Subscribe to notification updates
+   */
+  subscribeToNotifications(userId: string, callback: (payload: any) => void) {
+    if (isDemoMode) {
+      console.log("Real-time subscriptions not available in demo mode");
+      return () => {};
+    }
+
+    let channel = supabase
+      .channel("notifications-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        callback,
+      )
+      .subscribe();
+
+    this.subscriptions.set("notifications", channel);
+
+    return () => {
+      channel.unsubscribe();
+      this.subscriptions.delete("notifications");
+    };
+  }
+
+  /**
+   * Subscribe to community interactions
+   */
+  subscribeToCommunityInteractions(
+    reportId: string,
+    callback: (payload: any) => void,
+  ) {
+    if (isDemoMode) {
+      console.log("Real-time subscriptions not available in demo mode");
+      return () => {};
+    }
+
+    let channel = supabase
+      .channel("community-interactions-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "community_interactions",
+          filter: `report_id=eq.${reportId}`,
+        },
+        callback,
+      )
+      .subscribe();
+
+    this.subscriptions.set(`community-${reportId}`, channel);
+
+    return () => {
+      channel.unsubscribe();
+      this.subscriptions.delete(`community-${reportId}`);
+    };
+  }
+
+  /**
+   * Unsubscribe from all channels
+   */
+  unsubscribeAll() {
+    this.subscriptions.forEach((channel) => {
+      channel.unsubscribe();
+    });
+    this.subscriptions.clear();
+  }
+}
+
 // Export enhanced service instances
 export const reportsService = new ReportsService();
 export const communityPostsService = new CommunityPostsService();
@@ -1088,6 +1376,10 @@ export const communityCommentsService = new CommunityCommentsService();
 export const userProfilesService = new UserProfilesService();
 export const notificationsService = new NotificationsService();
 export const evidenceService = new EvidenceService();
+export const supportTicketsService = new SupportTicketsService();
+export const educationService = new EducationService();
+export const faqService = new FAQService();
+export const realtimeService = new RealtimeService();
 
 // Export database service for health checks
 export const databaseService = new DatabaseService();
