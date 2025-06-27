@@ -9,26 +9,34 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-const QUICK_FIX_SQL = `-- Quick fix for infinite recursion in RLS policies
-CREATE OR REPLACE FUNCTION public.is_admin_user(user_id uuid)
-RETURNS boolean AS $$
-SELECT COALESCE((SELECT user_role IN ('admin', 'moderator') FROM public.users WHERE id = user_id), false);
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+const QUICK_FIX_SQL = `-- SIMPLE FIX: Remove dependency on users table for fraud reports
+-- This allows reports to be created using auth.uid() directly
 
-DROP POLICY IF EXISTS "Users can view their own profile" ON public.users;
-DROP POLICY IF EXISTS "Users can create their own profile" ON public.users;
-DROP POLICY IF EXISTS "Admins can manage all users" ON public.users;
+-- Remove the problematic foreign key constraint
+ALTER TABLE public.fraud_reports
+DROP CONSTRAINT IF EXISTS fraud_reports_user_id_fkey;
 
-CREATE POLICY "Users can view their own profile" ON public.users
-FOR SELECT USING (auth.uid()::text = id::text OR public.is_admin_user(auth.uid()));
+-- Create simple RLS policies for fraud_reports
+DROP POLICY IF EXISTS "Users can create their own reports" ON public.fraud_reports;
+DROP POLICY IF EXISTS "Users can view their own reports" ON public.fraud_reports;
+DROP POLICY IF EXISTS "Anyone can view public reports" ON public.fraud_reports;
 
-CREATE POLICY "Users can create their own profile" ON public.users
-FOR INSERT WITH CHECK (auth.uid()::text = id::text);
+-- Allow authenticated users to create reports
+CREATE POLICY "Authenticated users can create reports" ON public.fraud_reports
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
-CREATE POLICY "Admins can manage all users" ON public.users
-FOR ALL USING (public.is_admin_user(auth.uid()));
+-- Allow users to view their own reports
+CREATE POLICY "Users can view their own reports" ON public.fraud_reports
+    FOR SELECT USING (auth.uid()::text = user_id::text);
 
-GRANT EXECUTE ON FUNCTION public.is_admin_user(uuid) TO authenticated;`;
+-- Allow viewing of public reports
+CREATE POLICY "Anyone can view public reports" ON public.fraud_reports
+    FOR SELECT USING (is_public = true);
+
+-- Reference auth.users instead of custom users table
+ALTER TABLE public.fraud_reports
+ADD CONSTRAINT fraud_reports_user_id_fkey
+FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;`;
 
 export function QuickFixAlert() {
   const [copied, setCopied] = useState(false);
