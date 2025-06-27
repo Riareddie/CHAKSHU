@@ -563,13 +563,17 @@ class ReportsService extends DatabaseService {
       // If there's a policy error, provide helpful feedback
       if (result.error) {
         // Enhanced error logging with proper serialization
-        console.error("Database fetch user reports error:", {
-          message: result.error.message,
-          details: result.error.details,
-          hint: result.error.hint,
-          code: result.error.code,
-          full_error: JSON.stringify(result.error, null, 2),
-        });
+        const errorDetails = {
+          message: result.error?.message || "Unknown error",
+          details: result.error?.details || null,
+          hint: result.error?.hint || null,
+          code: result.error?.code || null,
+          status: result.error?.status || null,
+          statusText: result.error?.statusText || null,
+        };
+
+        console.error("Database fetch user reports error:", errorDetails);
+        console.error("Full error object:", result.error);
 
         // Check for network/connection errors
         if (
