@@ -11,25 +11,30 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export interface Report {
   id: string;
-  title: string;
+  date: string;
+  type: string;
   description: string;
-  fraud_type: string;
   status: string;
+  impact: string;
+  // Database fields from fraud_reports
+  user_id?: string;
+  report_type?: string;
+  fraudulent_number?: string;
   incident_date?: string;
+  incident_time?: string;
+  fraud_category?: string;
+  evidence_urls?: string[];
+  priority?: string;
+  created_at?: string;
+  updated_at?: string;
   amount_involved?: number;
   contact_info?: {
     phone?: string;
     email?: string;
   };
   location_info?: any;
-  city?: string;
-  state?: string;
-  country?: string;
   authority_comments?: string;
   authority_action?: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
 }
 
 interface ReportDetailsModalProps {
