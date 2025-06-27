@@ -325,13 +325,36 @@ const FraudReportingForm = () => {
 
       console.log("Starting report submission for user:", user.id);
 
+      // Quick database health check before submission
+      console.log("Checking database connectivity...");
+      try {
+        const healthCheck = await supabase
+          .from("fraud_reports")
+          .select("id")
+          .limit(1);
+        if (
+          healthCheck.error &&
+          !healthCheck.error.message?.includes("permission")
+        ) {
+          console.error("Database connectivity issue:", healthCheck.error);
+          throw new Error(
+            "Database connection failed. Please check your internet connection and try again.",
+          );
+        }
+        console.log("✅ Database is accessible");
+      } catch (healthError) {
+        console.error("Database health check failed:", healthError);
+        if (healthError instanceof Error) {
+          throw healthError;
+        }
+        throw new Error("Database connectivity check failed");
+      }
+
       // Skip user table operations entirely and proceed with report creation
       console.log(
         "Proceeding with report creation using authenticated user:",
         user.id,
       );
-
-      // We'll let the database service handle any user creation if needed
       // This avoids RLS policy issues while still allowing report creation
 
       // Validate form data before proceeding
