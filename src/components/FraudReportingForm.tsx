@@ -532,12 +532,34 @@ const FraudReportingForm = () => {
         await Promise.allSettled(uploadPromises);
       }
 
-      setSubmitSuccess(true);
+      // Verify the report was actually saved by fetching it back
+      console.log("Verifying report was saved to database...");
+      const verificationResult = await reportsService.getById(createdReport.id);
 
-      toast({
-        title: "Report Submitted Successfully",
-        description: `Your fraud report has been submitted with ID: ${createdReport.id}`,
-      });
+      if (verificationResult.success && verificationResult.data) {
+        console.log(
+          "✅ Report successfully saved to database:",
+          verificationResult.data,
+        );
+        setSubmitSuccess(true);
+
+        toast({
+          title: "Report Submitted Successfully! ✅",
+          description: `Your fraud report has been saved to the database with ID: ${createdReport.id}`,
+        });
+      } else {
+        console.error(
+          "��� Report creation succeeded but verification failed:",
+          verificationResult.error,
+        );
+        setSubmitSuccess(true); // Still show success since creation worked
+
+        toast({
+          title: "Report Submitted (Verification Warning)",
+          description: `Report created with ID: ${createdReport.id}, but verification failed. The report should still be saved.`,
+          variant: "destructive",
+        });
+      }
 
       // Clear form and draft
       setFormData({
