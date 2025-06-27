@@ -298,14 +298,14 @@ const ReportDetailsModal = ({
                 </div>
 
                 {/* Evidence Files */}
-                {enhancedReport.evidenceFiles &&
-                  enhancedReport.evidenceFiles.length > 0 && (
+                {actualReport.evidenceFiles &&
+                  actualReport.evidenceFiles.length > 0 && (
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                         Evidence Files
                       </h3>
                       <div className="space-y-2">
-                        {enhancedReport.evidenceFiles.map((file, index) => (
+                        {actualReport.evidenceFiles.map((file, index) => (
                           <div
                             key={index}
                             className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded border"
