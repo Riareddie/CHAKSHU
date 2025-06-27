@@ -298,10 +298,54 @@ class ReportsService extends DatabaseService {
    * Create new report
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").insert(report).select().single(),
-      "create report",
-    );
+    return this.executeQuery(async () => {
+      // First try to create the report normally
+      let result = await supabase
+        .from("fraud_reports")
+        .insert(report)
+        .select()
+        .single();
+
+      // If it fails due to foreign key constraint (user doesn't exist)
+      if (result.error && result.error.message?.includes("user_id_fkey")) {
+        console.log(
+          "Foreign key constraint failed, trying to create user first...",
+        );
+
+        // Try to create a minimal user record
+        const userInsertResult = await supabase.from("users").upsert(
+          {
+            id: report.user_id,
+            email: "unknown@example.com", // Placeholder
+            full_name: "User",
+            user_role: "citizen",
+            is_verified: false,
+            is_banned: false,
+          },
+          {
+            onConflict: "id",
+            ignoreDuplicates: true,
+          },
+        );
+
+        if (userInsertResult.error) {
+          console.warn("Could not create user record:", userInsertResult.error);
+          // Continue anyway - the original error will be returned
+        } else {
+          console.log(
+            "Created minimal user record, retrying report creation...",
+          );
+          // Retry the report creation
+          result = await supabase
+            .from("fraud_reports")
+            .insert(report)
+            .select()
+            .single();
+        }
+      }
+
+      return result;
+    }, "create report");
   }
 
   /**
