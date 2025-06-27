@@ -506,11 +506,13 @@ class ReportsService extends DatabaseService {
             .eq("user_id", userId)
             .order("created_at", { ascending: false });
 
-          // If successful, return immediately
+          // If successful, cache and return
           if (!result.error) {
             console.log(
               `✅ Successfully fetched ${result.data?.length || 0} reports`,
             );
+            // Cache the successful result
+            cacheService.set(cacheKey, result.data, 2 * 60 * 1000); // Cache for 2 minutes
             return result;
           }
 
