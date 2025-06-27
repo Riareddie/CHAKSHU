@@ -481,7 +481,25 @@ class ReportsService extends DatabaseService {
 
       // If there's a policy error, provide helpful feedback
       if (result.error) {
-        console.error("Database fetch user reports error:", result.error);
+        // Enhanced error logging with proper serialization
+        console.error("Database fetch user reports error:", {
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          code: result.error.code,
+          full_error: JSON.stringify(result.error, null, 2),
+        });
+
+        // Check for network/connection errors
+        if (
+          result.error.message?.includes("Failed to fetch") ||
+          result.error.message?.includes("NetworkError") ||
+          result.error.message?.includes("fetch")
+        ) {
+          throw new Error(
+            "Network connection failed. Please check your internet connection and try again.",
+          );
+        }
 
         // Check for specific RLS policy errors
         if (
@@ -499,6 +517,16 @@ class ReportsService extends DatabaseService {
           result.error.message?.includes("auth")
         ) {
           throw new Error("Authentication required. Please log in again.");
+        }
+
+        // Check for CORS or network issues
+        if (
+          result.error.message?.includes("CORS") ||
+          result.error.message?.includes("Access-Control")
+        ) {
+          throw new Error(
+            "Network configuration error. Please try again or contact support.",
+          );
         }
 
         throw new Error(result.error.message || "Failed to fetch reports");
