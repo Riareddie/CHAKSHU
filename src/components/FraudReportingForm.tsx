@@ -324,26 +324,14 @@ const FraudReportingForm = () => {
 
       console.log("Starting report submission for user:", user.id);
 
-      // Try to ensure user exists in database, but continue even if it fails
-      try {
-        const userResult = await ensureUserExists(user);
-        if (userResult.created) {
-          console.log("New user account created in database");
-          toast({
-            title: "Account Setup Complete",
-            description: "Your account has been set up for fraud reporting.",
-          });
-        } else if (!userResult.success) {
-          console.warn("Could not create user record:", userResult.error);
-          // Continue anyway - we'll use the auth user ID directly
-        }
-      } catch (userError) {
-        console.warn(
-          "User creation failed, continuing with auth user:",
-          userError,
-        );
-        // Don't throw error here - we can proceed with just the auth user
-      }
+      // Skip user table operations entirely and proceed with report creation
+      console.log(
+        "Proceeding with report creation using authenticated user:",
+        user.id,
+      );
+
+      // We'll let the database service handle any user creation if needed
+      // This avoids RLS policy issues while still allowing report creation
 
       // Validate form data before proceeding
       if (!formData.fraudType) {
