@@ -101,13 +101,14 @@ class DatabaseService {
       const response = await queryFn();
 
       if (response.error) {
-        // Enhanced error logging with more details
+        // Enhanced error logging with proper serialization
         console.error(`Database ${operation} error:`, {
-          error: response.error,
           message: response.error.message,
           details: response.error.details,
           hint: response.error.hint,
           code: response.error.code,
+          full_error: JSON.stringify(response.error, null, 2),
+          operation: operation,
         });
 
         // Provide user-friendly error messages for common issues
