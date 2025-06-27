@@ -281,16 +281,16 @@ const ReportDetailsModal = ({
                         Current Action:
                       </span>
                       <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                        {enhancedReport.authorityAction}
+                        {actualReport.authorityAction}
                       </span>
                     </div>
-                    {enhancedReport.authorityComments && (
+                    {actualReport.authorityComments && (
                       <div>
                         <span className="font-medium text-gray-700 dark:text-gray-300">
                           Comments:
                         </span>
                         <p className="mt-1 text-gray-900 dark:text-white bg-white dark:bg-gray-700 p-3 rounded border">
-                          {enhancedReport.authorityComments}
+                          {actualReport.authorityComments}
                         </p>
                       </div>
                     )}
