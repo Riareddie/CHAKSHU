@@ -158,9 +158,9 @@ const ReportDetailsModal = ({
                   Current Status
                 </h4>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(enhancedReport.status)}`}
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(actualReport.status)}`}
                 >
-                  {enhancedReport.status}
+                  {actualReport.status}
                 </span>
               </div>
               <div>
@@ -168,9 +168,9 @@ const ReportDetailsModal = ({
                   Impact Level
                 </h4>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${getImpactColor(enhancedReport.impact)}`}
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${getImpactColor(actualReport.impact)}`}
                 >
-                  {enhancedReport.impact}
+                  {actualReport.impact}
                 </span>
               </div>
               <div>
@@ -178,7 +178,7 @@ const ReportDetailsModal = ({
                   Amount Involved
                 </h4>
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {formatAmount(enhancedReport.amountInvolved)}
+                  {formatAmount(actualReport.amountInvolved)}
                 </span>
               </div>
             </div>
