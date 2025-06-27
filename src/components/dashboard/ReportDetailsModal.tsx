@@ -128,12 +128,12 @@ const ReportDetailsModal = ({
         aria-describedby="report-details-description"
       >
         <DialogHeader>
-          {enhancedReport.title ? (
+          {actualReport.title ? (
             <DialogTitle
               id="report-details-title"
               className="text-2xl font-bold"
             >
-              {enhancedReport.title}
+              {actualReport.title}
             </DialogTitle>
           ) : (
             <VisuallyHidden>
@@ -143,8 +143,8 @@ const ReportDetailsModal = ({
             </VisuallyHidden>
           )}
           <DialogDescription id="report-details-description">
-            {enhancedReport.id
-              ? `Report ID: ${enhancedReport.id} • Submitted on ${formatDate(enhancedReport.date)}`
+            {actualReport.id
+              ? `Report ID: ${actualReport.id} • Submitted on ${formatDate(actualReport.date)}`
               : "Loading report details..."}
           </DialogDescription>
         </DialogHeader>
