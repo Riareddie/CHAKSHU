@@ -601,6 +601,20 @@ class ReportsService extends DatabaseService {
           );
         }
 
+        // Try to return cached data as fallback
+        const cachedData = cacheService.get<Report[]>(cacheKey);
+        if (cachedData) {
+          console.warn(
+            "Database failed, returning cached data:",
+            cachedData.length,
+            "reports",
+          );
+          return {
+            data: cachedData,
+            error: null,
+          };
+        }
+
         throw new Error(result.error.message || "Failed to fetch reports");
       }
 
