@@ -510,7 +510,7 @@ class ReportsService extends DatabaseService {
 
           // Try to get reports with RLS policies
           const result = await supabase
-            .from("reports")
+            .from("fraud_reports")
             .select("*")
             .eq("user_id", userId)
             .order("created_at", { ascending: false });
