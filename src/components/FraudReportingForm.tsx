@@ -498,6 +498,18 @@ const FraudReportingForm = () => {
         priority: "medium",
       };
 
+      // Save to localStorage as backup before database submission
+      const backupData = {
+        ...reportData,
+        submittedAt: new Date().toISOString(),
+        formData: formData,
+      };
+      localStorage.setItem(
+        `fraud-report-backup-${Date.now()}`,
+        JSON.stringify(backupData),
+      );
+      console.log("Report data backed up to localStorage");
+
       // Submit report to database
       console.log("Submitting report with data:", reportData);
       const reportResult = await reportsService.create(reportData);
@@ -549,7 +561,7 @@ const FraudReportingForm = () => {
         });
       } else {
         console.error(
-          "��� Report creation succeeded but verification failed:",
+          "❌ Report creation succeeded but verification failed:",
           verificationResult.error,
         );
         setSubmitSuccess(true); // Still show success since creation worked
