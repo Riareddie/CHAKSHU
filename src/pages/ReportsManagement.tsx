@@ -266,8 +266,23 @@ const ReportsManagement = () => {
     });
   };
 
-  const handleViewReport = (report: Report) => {
-    setSelectedReport(report);
+  const handleViewReport = (report: DisplayReport) => {
+    // Convert DisplayReport to the format expected by ReportDetailsModal
+    const modalReport = {
+      id: report.id,
+      date: report.submittedAt.toISOString().split("T")[0],
+      type: report.type,
+      description: report.description,
+      status: report.status,
+      impact: report.severity,
+      fraudulent_number: report.phoneNumber,
+      amount_involved: report.amount,
+      contact_info: report.contactInfo,
+      location_info: report.locationInfo,
+      created_at: report.submittedAt.toISOString(),
+      updated_at: report.updatedAt.toISOString(),
+    };
+    setSelectedReport(modalReport);
     setIsViewModalOpen(true);
   };
 
