@@ -55,32 +55,63 @@ interface DisplayReport {
   phoneNumber: string;
   location: string;
   amount?: number;
-  status: "pending" | "under_review" | "resolved" | "rejected" | "escalated";
+  status: "pending" | "under_review" | "resolved" | "rejected" | "withdrawn";
   severity: "low" | "medium" | "high" | "critical";
   submittedAt: Date;
   updatedAt: Date;
   referenceId: string;
   evidenceCount: number;
+  contactInfo?: {
+    phone?: string;
+    email?: string;
+  };
+  locationInfo?: {
+    address?: string;
+    city?: string;
+    state?: string;
+  };
 }
 
 // Convert database report to display format
 const convertToDisplayFormat = (report: Report): DisplayReport => {
+  // Handle location info - fraud_reports table may have location stored differently
+  const location = report.location_info
+    ? typeof report.location_info === "string"
+      ? report.location_info
+      : `${report.location_info.address || ""}, ${report.location_info.city || ""}, ${report.location_info.state || ""}`
+          .trim()
+          .replace(/^,\s*|,\s*$/g, "") || "Not specified"
+    : "Not specified";
+
+  // Handle contact info - may be stored in fraud_reports or derived from fraudulent_number
+  const contactInfo = report.contact_info || {
+    phone: report.fraudulent_number,
+  };
+  const phoneNumber =
+    contactInfo?.phone || report.fraudulent_number || "Not specified";
+
   return {
     id: report.id,
-    type: report.report_type
+    type: (report.report_type || report.fraud_category || "unknown")
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
-    title: `${report.fraud_category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
+    title: `${(report.fraud_category || report.report_type || "fraud").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
     description: report.description,
-    phoneNumber: report.fraudulent_number,
-    location: "Not specified", // Location not stored in this schema
-    amount: undefined, // Amount not stored in this schema
+    phoneNumber,
+    location,
+    amount: report.amount_involved,
     status: report.status as DisplayReport["status"],
     severity: (report.priority as DisplayReport["severity"]) || "medium",
     submittedAt: new Date(report.created_at),
     updatedAt: new Date(report.updated_at),
     referenceId: report.id,
     evidenceCount: (report.evidence_urls || []).length,
+    contactInfo: contactInfo as { phone?: string; email?: string },
+    locationInfo: {
+      address: report.location_info?.address,
+      city: report.location_info?.city,
+      state: report.location_info?.state,
+    },
   };
 };
 
@@ -92,9 +123,7 @@ const ReportsManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showNewReportModal, setShowNewReportModal] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<DisplayReport | null>(
-    null,
-  );
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
@@ -144,7 +173,7 @@ const ReportsManagement = () => {
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "rejected":
         return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case "escalated":
+      case "withdrawn":
         return <AlertCircle className="h-4 w-4 text-purple-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
@@ -161,7 +190,7 @@ const ReportsManagement = () => {
         return "bg-green-100 text-green-800 border-green-200";
       case "rejected":
         return "bg-red-100 text-red-800 border-red-200";
-      case "escalated":
+      case "withdrawn":
         return "bg-purple-100 text-purple-800 border-purple-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -235,8 +264,23 @@ const ReportsManagement = () => {
     });
   };
 
-  const handleViewReport = (report: Report) => {
-    setSelectedReport(report);
+  const handleViewReport = (report: DisplayReport) => {
+    // Convert DisplayReport to the format expected by ReportDetailsModal
+    const modalReport = {
+      id: report.id,
+      date: report.submittedAt.toISOString().split("T")[0],
+      type: report.type,
+      description: report.description,
+      status: report.status,
+      impact: report.severity,
+      fraudulent_number: report.phoneNumber,
+      amount_involved: report.amount,
+      contact_info: report.contactInfo,
+      location_info: report.locationInfo,
+      created_at: report.submittedAt.toISOString(),
+      updated_at: report.updatedAt.toISOString(),
+    };
+    setSelectedReport(modalReport);
     setIsViewModalOpen(true);
   };
 
@@ -295,7 +339,7 @@ const ReportsManagement = () => {
     under_review: reports.filter((r) => r.status === "under_review").length,
     resolved: reports.filter((r) => r.status === "resolved").length,
     rejected: reports.filter((r) => r.status === "rejected").length,
-    escalated: reports.filter((r) => r.status === "escalated").length,
+    withdrawn: reports.filter((r) => r.status === "withdrawn").length,
   };
 
   return (
@@ -450,8 +494,8 @@ const ReportsManagement = () => {
                     <SelectItem value="rejected">
                       Rejected ({statusCounts.rejected})
                     </SelectItem>
-                    <SelectItem value="escalated">
-                      Escalated ({statusCounts.escalated})
+                    <SelectItem value="withdrawn">
+                      Withdrawn ({statusCounts.withdrawn})
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -620,14 +664,7 @@ const ReportsManagement = () => {
           <ReportDetailsModal
             isOpen={isViewModalOpen}
             onClose={handleCloseViewModal}
-            report={{
-              id: selectedReport.referenceId,
-              date: selectedReport.submittedAt.toISOString().split("T")[0],
-              type: selectedReport.type,
-              description: selectedReport.description,
-              status: selectedReport.status.replace("_", " "),
-              impact: selectedReport.severity,
-            }}
+            report={selectedReport}
           />
         )}
 

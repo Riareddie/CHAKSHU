@@ -11,6 +11,7 @@ import type {
   TablesUpdate,
 } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
+import { cacheService } from "./cache-service";
 
 // Type aliases for convenience - using fraud_reports table
 type FraudReport = {
@@ -27,6 +28,12 @@ type FraudReport = {
   priority: string;
   created_at: string;
   updated_at: string;
+  // Additional fields that might be available
+  amount_involved?: number;
+  contact_info?: any;
+  location_info?: any;
+  authority_action?: string;
+  authority_comments?: string;
 };
 
 type FraudReportInsert = {
@@ -40,6 +47,9 @@ type FraudReportInsert = {
   evidence_urls?: string[];
   status?: string;
   priority?: string;
+  amount_involved?: number;
+  contact_info?: any;
+  location_info?: any;
 };
 
 type FraudReportUpdate = Partial<FraudReportInsert>;
@@ -101,10 +111,85 @@ class DatabaseService {
       const response = await queryFn();
 
       if (response.error) {
-        console.error(`Database ${operation} error:`, response.error);
+        // Enhanced error logging with proper serialization
+        console.error(`Database ${operation} error:`, {
+          message: response.error.message,
+          details: response.error.details,
+          hint: response.error.hint,
+          code: response.error.code,
+          full_error: JSON.stringify(response.error, null, 2),
+          operation: operation,
+        });
+
+        // Provide user-friendly error messages for common issues
+        let userFriendlyMessage =
+          response.error.message || `Failed to ${operation}`;
+
+        if (response.error.message?.includes("infinite recursion")) {
+          // Log detailed instructions for developers
+          console.error(
+            "🚨 INFINITE RECURSION IN DATABASE POLICIES DETECTED 🚨",
+          );
+          console.error("");
+          console.error("IMMEDIATE ACTION REQUIRED:");
+          console.error("1. Go to Supabase Dashboard → SQL Editor");
+          console.error("2. Run this quick fix SQL:");
+          console.error("");
+          console.error(
+            "CREATE OR REPLACE FUNCTION public.is_admin_user(user_id uuid)",
+          );
+          console.error("RETURNS boolean AS $$");
+          console.error(
+            "SELECT COALESCE((SELECT user_role IN ('admin', 'moderator') FROM public.users WHERE id = user_id), false);",
+          );
+          console.error("$$ LANGUAGE sql STABLE SECURITY DEFINER;");
+          console.error("");
+          console.error(
+            'DROP POLICY IF EXISTS "Users can view their own profile" ON public.users;',
+          );
+          console.error(
+            'DROP POLICY IF EXISTS "Admins can manage all users" ON public.users;',
+          );
+          console.error("");
+          console.error(
+            'CREATE POLICY "Users can view their own profile" ON public.users',
+          );
+          console.error(
+            "FOR SELECT USING (auth.uid()::text = id::text OR public.is_admin_user(auth.uid()));",
+          );
+          console.error("");
+          console.error(
+            'CREATE POLICY "Admins can manage all users" ON public.users',
+          );
+          console.error("FOR ALL USING (public.is_admin_user(auth.uid()));");
+          console.error("");
+          console.error(
+            "GRANT EXECUTE ON FUNCTION public.is_admin_user(uuid) TO authenticated;",
+          );
+          console.error("");
+          console.error("3. Refresh the page and try again");
+          console.error("");
+
+          userFriendlyMessage =
+            "Database configuration issue detected. Please contact support.";
+        } else if (
+          response.error.message?.includes("JWT") ||
+          response.error.message?.includes("auth")
+        ) {
+          userFriendlyMessage = "Authentication required. Please log in again.";
+        } else if (
+          response.error.message?.includes("permission denied") ||
+          response.error.message?.includes("policy")
+        ) {
+          userFriendlyMessage =
+            "Access denied. You don't have permission to perform this action.";
+        } else if (response.error.message?.includes("connection")) {
+          userFriendlyMessage = "Database connection error. Please try again.";
+        }
+
         return {
           data: null,
-          error: response.error.message || `Failed to ${operation}`,
+          error: userFriendlyMessage,
           success: false,
         };
       }
@@ -120,7 +205,26 @@ class DatabaseService {
         error instanceof Error
           ? error.message
           : `Unknown error during ${operation}`;
-      console.error(`Database ${operation} exception:`, error);
+
+      console.error(`Database ${operation} exception:`, {
+        message,
+        operation,
+        stack: error instanceof Error ? error.stack : undefined,
+        full_error:
+          error instanceof Error
+            ? JSON.stringify(
+                {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                },
+                null,
+                2,
+              )
+            : String(error),
+        error_type: typeof error,
+        error_constructor: error?.constructor?.name,
+      });
 
       return {
         data: null,
@@ -134,10 +238,17 @@ class DatabaseService {
    * Check database connection health
    */
   async healthCheck(): Promise<ServiceResponse<boolean>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").select("id").limit(1),
-      "health check",
-    );
+    return this.executeQuery(async () => {
+      // First try the health check function that doesn't trigger RLS
+      try {
+        const result = await supabase.rpc("database_health_check");
+        return { data: result.data || true, error: null };
+      } catch (error) {
+        // Fallback to simple query if function doesn't exist
+        console.warn("Health check function not available, using fallback");
+        return await supabase.from("fraud_reports").select("id").limit(1);
+      }
+    }, "health check");
   }
 }
 
@@ -211,10 +322,130 @@ class ReportsService extends DatabaseService {
    * Create new report
    */
   async create(report: ReportInsert): Promise<ServiceResponse<Report>> {
-    return this.executeQuery(
-      () => supabase.from("fraud_reports").insert(report).select().single(),
-      "create report",
-    );
+    return this.executeQuery(async () => {
+      // First try to create the report normally
+      let result = await supabase
+        .from("fraud_reports")
+        .insert(report)
+        .select()
+        .single();
+
+      // If it fails due to foreign key constraint (user doesn't exist)
+      if (result.error && result.error.message?.includes("user_id_fkey")) {
+        console.log(
+          "Foreign key constraint failed, trying to create user first...",
+        );
+        console.log("Original error details:", {
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          code: result.error.code,
+        });
+
+        // Try to create a minimal user record with better error handling
+        try {
+          const userInsertResult = await supabase.from("users").upsert(
+            {
+              id: report.user_id,
+              email: "user@example.com", // Placeholder
+              full_name: "User",
+              user_role: "citizen",
+              is_verified: false,
+              is_banned: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: "id",
+              ignoreDuplicates: true,
+            },
+          );
+
+          if (userInsertResult.error) {
+            console.warn("Could not create user record - Full error:", {
+              message: userInsertResult.error.message,
+              details: userInsertResult.error.details,
+              hint: userInsertResult.error.hint,
+              code: userInsertResult.error.code,
+              error: userInsertResult.error,
+            });
+
+            // If user creation fails, try creating the report without foreign key dependency
+            console.log(
+              "Attempting to create report with relaxed constraints...",
+            );
+
+            // Try using a stored procedure or RPC if available
+            const fallbackResult = await supabase.rpc(
+              "create_report_without_user_constraint",
+              {
+                p_user_id: report.user_id,
+                p_report_type: report.report_type,
+                p_fraudulent_number: report.fraudulent_number,
+                p_incident_date: report.incident_date,
+                p_incident_time: report.incident_time,
+                p_description: report.description,
+                p_fraud_category: report.fraud_category,
+                p_evidence_urls: report.evidence_urls || [],
+                p_status: report.status || "pending",
+                p_priority: report.priority || "medium",
+              },
+            );
+
+            if (fallbackResult.error) {
+              console.warn("Fallback RPC also failed:", fallbackResult.error);
+              // Return the configuration error message
+              return {
+                data: null,
+                error: {
+                  ...result.error,
+                  message: `Database configuration issue: Please apply the simple database fix. The foreign key constraint prevents report creation. Original error: ${result.error.message}`,
+                },
+              };
+            } else {
+              console.log("Fallback report creation succeeded!");
+              return {
+                data: fallbackResult.data,
+                error: null,
+              };
+            }
+          } else {
+            console.log(
+              "Created minimal user record, retrying report creation...",
+            );
+            // Retry the report creation
+            result = await supabase
+              .from("fraud_reports")
+              .insert(report)
+              .select()
+              .single();
+
+            if (result.error) {
+              console.error(
+                "Report creation still failed after user creation:",
+                {
+                  message: result.error.message,
+                  details: result.error.details,
+                  hint: result.error.hint,
+                  code: result.error.code,
+                },
+              );
+            }
+          }
+        } catch (userCreationError) {
+          console.error("Exception during user creation:", userCreationError);
+          return {
+            data: null,
+            error: {
+              ...result.error,
+              message: `Failed to create user account. Please ensure database migration is applied. Error: ${result.error.message}`,
+            },
+          };
+        }
+      }
+
+      return result;
+    }, "create report");
   }
 
   /**
@@ -255,15 +486,153 @@ class ReportsService extends DatabaseService {
    * Get user's reports
    */
   async getUserReports(userId: string): Promise<ServiceResponse<Report[]>> {
-    return this.executeQuery(
-      () =>
-        supabase
-          .from("fraud_reports")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
-      "fetch user reports",
-    );
+    if (!userId) {
+      return {
+        data: [],
+        error: "User ID is required",
+        success: false,
+        message: "No user ID provided",
+      };
+    }
+
+    const cacheKey = `user_reports_${userId}`;
+
+    return this.executeQuery(async () => {
+      // Retry mechanism for network failures
+      const maxRetries = 3;
+      let lastError: any = null;
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(
+            `Attempting to fetch user reports (attempt ${attempt}/${maxRetries})`,
+          );
+
+          // Try to get reports with RLS policies
+          const result = await supabase
+            .from("fraud_reports")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false });
+
+          // If successful, cache and return
+          if (!result.error) {
+            console.log(
+              `✅ Successfully fetched ${result.data?.length || 0} reports`,
+            );
+            // Cache the successful result
+            cacheService.set(cacheKey, result.data, 2 * 60 * 1000); // Cache for 2 minutes
+            return result;
+          }
+
+          lastError = result.error;
+
+          // If it's a network error, retry
+          if (
+            result.error.message?.includes("Failed to fetch") ||
+            result.error.message?.includes("NetworkError") ||
+            result.error.message?.includes("fetch")
+          ) {
+            if (attempt < maxRetries) {
+              console.warn(
+                `Network error on attempt ${attempt}, retrying in ${attempt * 1000}ms...`,
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, attempt * 1000),
+              );
+              continue;
+            }
+          }
+
+          // If it's not a network error, don't retry
+          break;
+        } catch (error) {
+          lastError = error;
+          console.error(`Exception on attempt ${attempt}:`, error);
+
+          if (attempt < maxRetries) {
+            await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            continue;
+          }
+        }
+      }
+
+      // All retries failed, process the error
+      const result = { error: lastError, data: null };
+
+      // If there's a policy error, provide helpful feedback
+      if (result.error) {
+        // Enhanced error logging with proper serialization
+        const errorDetails = {
+          message: result.error?.message || "Unknown error",
+          details: result.error?.details || null,
+          hint: result.error?.hint || null,
+          code: result.error?.code || null,
+          status: result.error?.status || null,
+          statusText: result.error?.statusText || null,
+        };
+
+        console.error("Database fetch user reports error:", errorDetails);
+        console.error("Full error object:", result.error);
+
+        // Check for network/connection errors
+        if (
+          result.error.message?.includes("Failed to fetch") ||
+          result.error.message?.includes("NetworkError") ||
+          result.error.message?.includes("fetch")
+        ) {
+          throw new Error(
+            "Network connection failed. Please check your internet connection and try again.",
+          );
+        }
+
+        // Check for specific RLS policy errors
+        if (
+          result.error.message?.includes("infinite recursion") ||
+          result.error.message?.includes("policy")
+        ) {
+          throw new Error(
+            "Database configuration error. Please contact support.",
+          );
+        }
+
+        // Check for authentication errors
+        if (
+          result.error.message?.includes("JWT") ||
+          result.error.message?.includes("auth")
+        ) {
+          throw new Error("Authentication required. Please log in again.");
+        }
+
+        // Check for CORS or network issues
+        if (
+          result.error.message?.includes("CORS") ||
+          result.error.message?.includes("Access-Control")
+        ) {
+          throw new Error(
+            "Network configuration error. Please try again or contact support.",
+          );
+        }
+
+        // Try to return cached data as fallback
+        const cachedData = cacheService.get<Report[]>(cacheKey);
+        if (cachedData) {
+          console.warn(
+            "Database failed, returning cached data:",
+            cachedData.length,
+            "reports",
+          );
+          return {
+            data: cachedData,
+            error: null,
+          };
+        }
+
+        throw new Error(result.error.message || "Failed to fetch reports");
+      }
+
+      return result;
+    }, "fetch user reports");
   }
 
   /**

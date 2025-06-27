@@ -15,6 +15,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import TypeSelectionStep from "./form-steps/TypeSelectionStep";
 import CategorySelectionStep from "./form-steps/CategorySelectionStep";
 import DetailsFormStep from "./form-steps/DetailsFormStep";
+import DatabaseStatus from "@/components/common/DatabaseStatus";
+import QuickFixAlert from "@/components/common/QuickFixAlert";
+import DatabaseDiagnostics from "@/components/common/DatabaseDiagnostics";
+import SavedReportsVerification from "@/components/common/SavedReportsVerification";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
@@ -22,6 +26,7 @@ import useFormValidation, {
   enhancedValidations,
 } from "@/hooks/useFormValidation";
 import { reportsService, evidenceService } from "@/services/database";
+import { supabase } from "@/integrations/supabase/client";
 import type { ReportInsert } from "@/services/database";
 
 interface FormData {
@@ -46,6 +51,7 @@ const FraudReportingForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hasDatabaseError, setHasDatabaseError] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
   const { toast } = useToast();
@@ -101,7 +107,7 @@ const FraudReportingForm = () => {
     validateForm,
     clearError,
     hasError,
-    setErrors,
+    setError,
   } = useFormValidation(validationSchema);
 
   // Simple getError function using errors object directly
@@ -123,6 +129,11 @@ const FraudReportingForm = () => {
     // Clear submit error when user makes changes
     if (submitError) {
       setSubmitError(null);
+    }
+
+    // Clear database error flag when user makes changes
+    if (hasDatabaseError) {
+      setHasDatabaseError(false);
     }
   };
 
@@ -179,7 +190,10 @@ const FraudReportingForm = () => {
     }
 
     if (!isValid) {
-      setErrors((prev) => ({ ...prev, ...newErrors }));
+      // Set each error individually using setError
+      Object.entries(newErrors).forEach(([field, error]) => {
+        setError(field, error);
+      });
     }
 
     return isValid;
@@ -302,8 +316,78 @@ const FraudReportingForm = () => {
 
     setIsSubmitting(true);
     setSubmitError(null);
+    setHasDatabaseError(false);
 
     try {
+      // Verify user is still authenticated
+      if (!user?.id) {
+        throw new Error("User authentication expired. Please log in again.");
+      }
+
+      console.log("Starting report submission for user:", user.id);
+
+      // Quick database health check before submission
+      console.log("Checking database connectivity...");
+      try {
+        const healthCheck = await supabase
+          .from("fraud_reports")
+          .select("id")
+          .limit(1);
+        if (
+          healthCheck.error &&
+          !healthCheck.error.message?.includes("permission")
+        ) {
+          console.error("Database connectivity issue:", healthCheck.error);
+          throw new Error(
+            "Database connection failed. Please check your internet connection and try again.",
+          );
+        }
+        console.log("✅ Database is accessible");
+      } catch (healthError) {
+        console.error("Database health check failed:", healthError);
+        if (healthError instanceof Error) {
+          throw healthError;
+        }
+        throw new Error("Database connectivity check failed");
+      }
+
+      // Skip user table operations entirely and proceed with report creation
+      console.log(
+        "Proceeding with report creation using authenticated user:",
+        user.id,
+      );
+      // This avoids RLS policy issues while still allowing report creation
+
+      // Validate form data before proceeding
+      if (!formData.fraudType) {
+        throw new Error("Please select a fraud type");
+      }
+      if (!formData.category) {
+        throw new Error("Please select a fraud category");
+      }
+      if (!formData.phoneNumber) {
+        throw new Error("Please enter a phone number");
+      }
+      if (
+        !formData.messageContent ||
+        formData.messageContent.trim().length < 10
+      ) {
+        throw new Error(
+          "Please provide a detailed description (at least 10 characters)",
+        );
+      }
+      if (
+        !formData.dateTime ||
+        !(formData.dateTime instanceof Date) ||
+        isNaN(formData.dateTime.getTime())
+      ) {
+        console.log(
+          "Date validation failed. Current dateTime value:",
+          formData.dateTime,
+        );
+        throw new Error("Please select the incident date");
+      }
+
       // First validate the current step
       const isStepValid = validateCurrentStep();
       if (!isStepValid) {
@@ -359,22 +443,66 @@ const FraudReportingForm = () => {
       // Map fraud type to report type
       const getReportType = (fraudType: string): string => {
         const typeMap: Record<string, string> = {
-          "Call Fraud": "call",
-          "SMS Fraud": "sms",
-          "WhatsApp Scam": "whatsapp",
-          "Email Spam": "email",
+          phone_call: "call",
+          sms_fraud: "sms",
+          email_phishing: "email",
+          online_fraud: "other",
+          financial_fraud: "other",
+          identity_theft: "other",
+          job_fraud: "other",
+          other: "other",
         };
-        return typeMap[fraudType] || "call";
+        return typeMap[fraudType] || "other";
       };
 
       // Map category to fraud_category
       const getFraudCategory = (category: string): string => {
         const categoryMap: Record<string, string> = {
-          "Financial Fraud": "financial_fraud",
-          "Investment Scam": "investment_fraud",
-          "Lottery Scam": "lottery_scam",
-          "Job Fraud": "job_fraud",
-          Impersonation: "impersonation",
+          // Phone call categories
+          fake_bank_call: "financial_fraud",
+          tech_support_scam: "tech_support_scam",
+          prize_scam: "lottery_scam",
+          survey_scam: "other",
+
+          // SMS fraud categories
+          otp_theft: "financial_fraud",
+          fake_delivery: "other",
+          prize_sms: "lottery_scam",
+          malicious_links: "other",
+
+          // Email phishing categories
+          account_verification: "impersonation",
+          invoice_scam: "financial_fraud",
+          fake_offers: "other",
+          malware_email: "other",
+
+          // Online fraud categories
+          fake_shopping: "other",
+          dating_scam: "romance_scam",
+          social_media_fraud: "other",
+          fake_services: "other",
+
+          // Financial fraud categories
+          upi_fraud: "financial_fraud",
+          credit_card_fraud: "financial_fraud",
+          investment_scam: "investment_fraud",
+          loan_scam: "financial_fraud",
+
+          // Identity theft categories
+          document_theft: "impersonation",
+          fake_profiles: "impersonation",
+          kyc_fraud: "impersonation",
+
+          // Job fraud categories
+          fake_job_offer: "job_fraud",
+          work_from_home: "job_fraud",
+          fee_based_jobs: "job_fraud",
+
+          // Other categories
+          matrimonial_fraud: "other",
+          rental_scam: "other",
+          charity_scam: "other",
+          general_fraud: "other",
         };
         return categoryMap[category] || "other";
       };
@@ -395,13 +523,41 @@ const FraudReportingForm = () => {
         priority: "medium",
       };
 
+      // Save to localStorage as backup before database submission
+      const backupData = {
+        ...reportData,
+        submittedAt: new Date().toISOString(),
+        formData: formData,
+      };
+      localStorage.setItem(
+        `fraud-report-backup-${Date.now()}`,
+        JSON.stringify(backupData),
+      );
+      console.log("Report data backed up to localStorage");
+
       // Submit report to database
+      console.log("Submitting report with data:", reportData);
       const reportResult = await reportsService.create(reportData);
+      console.log("Report submission result:", reportResult);
 
       if (!reportResult.success || !reportResult.data) {
+        console.error("Report creation failed:", reportResult.error);
+
+        // Check for infinite recursion error specifically
+        if (
+          reportResult.error?.includes("infinite recursion") ||
+          reportResult.error?.includes("Database configuration")
+        ) {
+          setSubmitError(
+            "Database configuration error detected. Please see the instructions below to fix this issue.",
+          );
+          setHasDatabaseError(true);
+          throw new Error("database_config_error");
+        }
+
+        // Throw the actual error message for better debugging
         throw new Error(reportResult.error || "Failed to create report");
       }
-
       const createdReport = reportResult.data;
 
       // Upload evidence files if any
@@ -413,12 +569,34 @@ const FraudReportingForm = () => {
         await Promise.allSettled(uploadPromises);
       }
 
-      setSubmitSuccess(true);
+      // Verify the report was actually saved by fetching it back
+      console.log("Verifying report was saved to database...");
+      const verificationResult = await reportsService.getById(createdReport.id);
 
-      toast({
-        title: "Report Submitted Successfully",
-        description: `Your fraud report has been submitted with ID: ${createdReport.id}`,
-      });
+      if (verificationResult.success && verificationResult.data) {
+        console.log(
+          "✅ Report successfully saved to database:",
+          verificationResult.data,
+        );
+        setSubmitSuccess(true);
+
+        toast({
+          title: "Report Submitted Successfully! ✅",
+          description: `Your fraud report has been saved to the database with ID: ${createdReport.id}`,
+        });
+      } else {
+        console.error(
+          "❌ Report creation succeeded but verification failed:",
+          verificationResult.error,
+        );
+        setSubmitSuccess(true); // Still show success since creation worked
+
+        toast({
+          title: "Report Submitted (Verification Warning)",
+          description: `Report created with ID: ${createdReport.id}, but verification failed. The report should still be saved.`,
+          variant: "destructive",
+        });
+      }
 
       // Clear form and draft
       setFormData({
@@ -438,15 +616,70 @@ const FraudReportingForm = () => {
       localStorage.removeItem("fraud-report-draft");
       setCurrentStep(1);
     } catch (error) {
-      setSubmitError(
-        "An unexpected error occurred while submitting your report. Please try again.",
-      );
-      toast({
-        title: "Submission Failed",
-        description:
-          "Failed to submit report. Please try again or contact support.",
-        variant: "destructive",
-      });
+      // Log the full error for debugging
+      console.error("Report submission error:", error);
+
+      // Handle database configuration errors specifically
+      if (error instanceof Error && error.message === "database_config_error") {
+        setHasDatabaseError(true);
+        toast({
+          title: "Database Configuration Error",
+          description:
+            "Please apply the database migration to fix this issue. Instructions are shown below.",
+          variant: "destructive",
+        });
+      } else {
+        // Provide more specific error message based on the error
+        let errorMessage =
+          "An unexpected error occurred while submitting your report.";
+        let errorDetails = "Please try again or contact support.";
+
+        if (error instanceof Error) {
+          console.error("Error details:", error.message, error.stack);
+
+          // Check for specific error types
+          if (
+            error.message.includes("infinite recursion") ||
+            error.message.includes("Database configuration")
+          ) {
+            setHasDatabaseError(true);
+            errorMessage = "Database configuration error detected.";
+            errorDetails =
+              "Please see the instructions below to fix this issue.";
+          } else if (
+            error.message.includes("foreign key constraint") ||
+            error.message.includes("user_id_fkey")
+          ) {
+            errorMessage = "User account verification failed.";
+            errorDetails = "Please log out and log back in, then try again.";
+          } else if (
+            error.message.includes("Network") ||
+            error.message.includes("fetch")
+          ) {
+            errorMessage = "Network connection error.";
+            errorDetails =
+              "Please check your internet connection and try again.";
+          } else if (
+            error.message.includes("permission") ||
+            error.message.includes("unauthorized")
+          ) {
+            errorMessage = "Permission denied.";
+            errorDetails = "Please make sure you're logged in and try again.";
+          } else if (error.message.includes("validation")) {
+            errorMessage = "Form validation error.";
+            errorDetails = "Please check your form data and try again.";
+          } else {
+            errorDetails = `Error: ${error.message}`;
+          }
+        }
+
+        setSubmitError(`${errorMessage} ${errorDetails}`);
+        toast({
+          title: "Submission Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -509,29 +742,34 @@ const FraudReportingForm = () => {
 
   if (submitSuccess) {
     return (
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-        <div className="text-center py-12">
-          <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Report Submitted Successfully!
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Thank you for reporting this fraud. Your submission helps protect
-            others in the community.
-          </p>
-          <div className="space-y-4">
-            <Button
-              onClick={() => setSubmitSuccess(false)}
-              className="bg-india-saffron hover:bg-saffron-600"
-            >
-              Submit Another Report
-            </Button>
-            <div className="text-sm text-gray-500">
-              You should receive a confirmation email shortly with your
-              reference number.
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="bg-white rounded-lg shadow-lg">
+          <div className="text-center py-12">
+            <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Report Submitted Successfully!
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Thank you for reporting this fraud. Your submission has been saved
+              to the database and helps protect others in the community.
+            </p>
+            <div className="space-y-4">
+              <Button
+                onClick={() => setSubmitSuccess(false)}
+                className="bg-india-saffron hover:bg-saffron-600"
+              >
+                Submit Another Report
+              </Button>
+              <div className="text-sm text-gray-500">
+                You should receive a confirmation email shortly with your
+                reference number.
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Show saved reports verification */}
+        <SavedReportsVerification />
       </div>
     );
   }
@@ -578,6 +816,14 @@ const FraudReportingForm = () => {
           </div>
         </div>
       </div>
+
+      {/* Database Configuration Error */}
+      {hasDatabaseError && (
+        <div className="mb-6 space-y-4">
+          <QuickFixAlert />
+          <DatabaseDiagnostics />
+        </div>
+      )}
 
       {/* Error Alert */}
       {submitError && (
