@@ -486,6 +486,8 @@ class ReportsService extends DatabaseService {
       };
     }
 
+    const cacheKey = `user_reports_${userId}`;
+
     return this.executeQuery(async () => {
       // Retry mechanism for network failures
       const maxRetries = 3;
