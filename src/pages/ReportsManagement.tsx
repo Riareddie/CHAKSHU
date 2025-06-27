@@ -320,7 +320,7 @@ const ReportsManagement = () => {
     under_review: reports.filter((r) => r.status === "under_review").length,
     resolved: reports.filter((r) => r.status === "resolved").length,
     rejected: reports.filter((r) => r.status === "rejected").length,
-    escalated: reports.filter((r) => r.status === "escalated").length,
+    withdrawn: reports.filter((r) => r.status === "withdrawn").length,
   };
 
   return (
