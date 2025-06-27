@@ -611,8 +611,8 @@ class ReportsService extends DatabaseService {
   > {
     return this.executeQuery(async () => {
       const result = await supabase
-        .from("fraud_reports")
-        .select("status, fraud_category");
+        .from("reports")
+        .select("status, fraud_type");
 
       if (result.error) return result;
 
