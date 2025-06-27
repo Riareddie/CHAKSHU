@@ -197,10 +197,23 @@ class DatabaseService {
           : `Unknown error during ${operation}`;
 
       console.error(`Database ${operation} exception:`, {
-        error,
         message,
         operation,
         stack: error instanceof Error ? error.stack : undefined,
+        full_error:
+          error instanceof Error
+            ? JSON.stringify(
+                {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                },
+                null,
+                2,
+              )
+            : String(error),
+        error_type: typeof error,
+        error_constructor: error?.constructor?.name,
       });
 
       return {
