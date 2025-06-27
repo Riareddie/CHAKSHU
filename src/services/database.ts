@@ -291,7 +291,7 @@ class ReportsService extends DatabaseService {
     return this.executeQuery(async () => {
       // First try to create the report normally
       let result = await supabase
-        .from("fraud_reports")
+        .from("reports")
         .insert(report)
         .select()
         .single();
