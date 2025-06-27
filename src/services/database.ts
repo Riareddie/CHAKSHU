@@ -381,7 +381,7 @@ class ReportsService extends DatabaseService {
             );
             // Retry the report creation
             result = await supabase
-              .from("fraud_reports")
+              .from("reports")
               .insert(report)
               .select()
               .single();
