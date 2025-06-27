@@ -252,17 +252,17 @@ const ReportDetailsModal = ({
                 )}
 
                 {/* Location Information */}
-                {enhancedReport.locationInfo && (
+                {actualReport.locationInfo && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       Location Information
                     </h3>
                     <div className="text-gray-900 dark:text-white bg-white dark:bg-gray-700 p-3 rounded border">
-                      <p>{enhancedReport.locationInfo.address}</p>
+                      <p>{actualReport.locationInfo.address}</p>
                       <p>
-                        {enhancedReport.locationInfo.city},{" "}
-                        {enhancedReport.locationInfo.state} -{" "}
-                        {enhancedReport.locationInfo.pincode}
+                        {actualReport.locationInfo.city},{" "}
+                        {actualReport.locationInfo.state} -{" "}
+                        {actualReport.locationInfo.pincode}
                       </p>
                     </div>
                   </div>
