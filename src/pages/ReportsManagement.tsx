@@ -169,7 +169,7 @@ const ReportsManagement = () => {
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "rejected":
         return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case "escalated":
+      case "withdrawn":
         return <AlertCircle className="h-4 w-4 text-purple-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
