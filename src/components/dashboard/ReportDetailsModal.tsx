@@ -221,29 +221,29 @@ const ReportDetailsModal = ({
                 </div>
 
                 {/* Contact Information */}
-                {enhancedReport.contactInfo && (
+                {actualReport.contactInfo && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       Contact Information
                     </h3>
                     <div className="space-y-2">
-                      {enhancedReport.contactInfo.phone && (
+                      {actualReport.contactInfo.phone && (
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300">
                             Phone:
                           </span>
                           <span className="ml-2 text-gray-900 dark:text-white">
-                            {enhancedReport.contactInfo.phone}
+                            {actualReport.contactInfo.phone}
                           </span>
                         </div>
                       )}
-                      {enhancedReport.contactInfo.email && (
+                      {actualReport.contactInfo.email && (
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300">
                             Email:
                           </span>
                           <span className="ml-2 text-gray-900 dark:text-white">
-                            {enhancedReport.contactInfo.email}
+                            {actualReport.contactInfo.email}
                           </span>
                         </div>
                       )}
