@@ -311,36 +311,81 @@ class ReportsService extends DatabaseService {
         console.log(
           "Foreign key constraint failed, trying to create user first...",
         );
+        console.log("Original error details:", {
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          code: result.error.code,
+        });
 
-        // Try to create a minimal user record
-        const userInsertResult = await supabase.from("users").upsert(
-          {
-            id: report.user_id,
-            email: "unknown@example.com", // Placeholder
-            full_name: "User",
-            user_role: "citizen",
-            is_verified: false,
-            is_banned: false,
-          },
-          {
-            onConflict: "id",
-            ignoreDuplicates: true,
-          },
-        );
-
-        if (userInsertResult.error) {
-          console.warn("Could not create user record:", userInsertResult.error);
-          // Continue anyway - the original error will be returned
-        } else {
-          console.log(
-            "Created minimal user record, retrying report creation...",
+        // Try to create a minimal user record with better error handling
+        try {
+          const userInsertResult = await supabase.from("users").upsert(
+            {
+              id: report.user_id,
+              email: "user@example.com", // Placeholder
+              full_name: "User",
+              user_role: "citizen",
+              is_verified: false,
+              is_banned: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: "id",
+              ignoreDuplicates: true,
+            },
           );
-          // Retry the report creation
-          result = await supabase
-            .from("fraud_reports")
-            .insert(report)
-            .select()
-            .single();
+
+          if (userInsertResult.error) {
+            console.warn("Could not create user record - Full error:", {
+              message: userInsertResult.error.message,
+              details: userInsertResult.error.details,
+              hint: userInsertResult.error.hint,
+              code: userInsertResult.error.code,
+              error: userInsertResult.error,
+            });
+
+            // Return a more specific error message
+            return {
+              data: null,
+              error: {
+                ...result.error,
+                message: `Database configuration issue: User account could not be created. Please apply the database migration or contact support. Original error: ${result.error.message}`,
+              },
+            };
+          } else {
+            console.log(
+              "Created minimal user record, retrying report creation...",
+            );
+            // Retry the report creation
+            result = await supabase
+              .from("fraud_reports")
+              .insert(report)
+              .select()
+              .single();
+
+            if (result.error) {
+              console.error(
+                "Report creation still failed after user creation:",
+                {
+                  message: result.error.message,
+                  details: result.error.details,
+                  hint: result.error.hint,
+                  code: result.error.code,
+                },
+              );
+            }
+          }
+        } catch (userCreationError) {
+          console.error("Exception during user creation:", userCreationError);
+          return {
+            data: null,
+            error: {
+              ...result.error,
+              message: `Failed to create user account. Please ensure database migration is applied. Error: ${result.error.message}`,
+            },
+          };
         }
       }
 
