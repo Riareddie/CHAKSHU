@@ -16,10 +16,14 @@ SELECT COALESCE((SELECT user_role IN ('admin', 'moderator') FROM public.users WH
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.users;
+DROP POLICY IF EXISTS "Users can create their own profile" ON public.users;
 DROP POLICY IF EXISTS "Admins can manage all users" ON public.users;
 
 CREATE POLICY "Users can view their own profile" ON public.users
 FOR SELECT USING (auth.uid()::text = id::text OR public.is_admin_user(auth.uid()));
+
+CREATE POLICY "Users can create their own profile" ON public.users
+FOR INSERT WITH CHECK (auth.uid()::text = id::text);
 
 CREATE POLICY "Admins can manage all users" ON public.users
 FOR ALL USING (public.is_admin_user(auth.uid()));
