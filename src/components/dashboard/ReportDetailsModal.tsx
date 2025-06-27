@@ -331,14 +331,48 @@ const ReportDetailsModal = ({
             </div>
 
             {/* Status History */}
-            {enhancedReport.statusHistory &&
-              enhancedReport.statusHistory.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Status History
-                  </h3>
-                  <div className="space-y-4">
-                    {enhancedReport.statusHistory.map((history, index) => (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Status History
+              </h3>
+              <div className="space-y-4">
+                <div className="flex gap-4 p-4 bg-white dark:bg-gray-700 rounded border">
+                  <div className="flex-shrink-0">
+                    <div
+                      className={`w-3 h-3 rounded-full mt-2 ${
+                        actualReport.status === "resolved"
+                          ? "bg-green-500"
+                          : actualReport.status === "under_review"
+                            ? "bg-blue-500"
+                            : "bg-yellow-500"
+                      }`}
+                    ></div>
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(actualReport.status)}`}
+                      >
+                        {actualReport.status}
+                      </span>
+                      {actualReport.authorityAction && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
+                          {actualReport.authorityAction}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      {formatDate(actualReport.date)}
+                    </p>
+                    {actualReport.authorityComments && (
+                      <p className="text-gray-900 dark:text-white">
+                        {actualReport.authorityComments}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
                       <div
                         key={index}
                         className="flex gap-4 p-4 bg-white dark:bg-gray-700 rounded border"
