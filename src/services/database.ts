@@ -659,10 +659,10 @@ class ReportsService extends DatabaseService {
         byFraudCategory: {} as Record<string, number>,
       };
 
-      // Calculate fraud type distribution
+      // Calculate fraud category distribution
       reports.forEach((report) => {
-        stats.byFraudCategory[report.fraud_type] =
-          (stats.byFraudCategory[report.fraud_type] || 0) + 1;
+        stats.byFraudCategory[report.fraud_category] =
+          (stats.byFraudCategory[report.fraud_category] || 0) + 1;
       });
 
       return { data: stats, error: null };
