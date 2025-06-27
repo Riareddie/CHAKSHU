@@ -67,20 +67,11 @@ const DialogContent = React.forwardRef<
       return children;
     }
 
-    // Import VisuallyHidden dynamically to avoid circular imports
-    const VisuallyHidden = React.lazy(() =>
-      import("@radix-ui/react-visually-hidden").then((module) => ({
-        default: module.VisuallyHidden,
-      })),
-    );
-
     return (
       <>
-        <React.Suspense fallback={null}>
-          <VisuallyHidden>
-            <DialogPrimitive.Title>Dialog</DialogPrimitive.Title>
-          </VisuallyHidden>
-        </React.Suspense>
+        <VisuallyHidden>
+          <DialogPrimitive.Title>Dialog</DialogPrimitive.Title>
+        </VisuallyHidden>
         {children}
       </>
     );
