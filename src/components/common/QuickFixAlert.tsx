@@ -67,11 +67,12 @@ export function QuickFixAlert() {
         <div className="space-y-4">
           <div>
             <h4 className="font-semibold text-red-800 text-base mb-2">
-              🚨 Database Configuration Error - Quick Fix Required
+              🚨 Database Foreign Key Error - Simple Fix Required
             </h4>
             <p className="text-red-700">
-              Your database has infinite recursion in RLS policies. This
-              prevents submitting reports.
+              Your database has a foreign key constraint issue that prevents
+              creating fraud reports. This simple fix removes the dependency on
+              a custom users table.
             </p>
           </div>
 
