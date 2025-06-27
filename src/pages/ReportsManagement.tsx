@@ -123,9 +123,7 @@ const ReportsManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showNewReportModal, setShowNewReportModal] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<DisplayReport | null>(
-    null,
-  );
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
