@@ -664,14 +664,7 @@ const ReportsManagement = () => {
           <ReportDetailsModal
             isOpen={isViewModalOpen}
             onClose={handleCloseViewModal}
-            report={{
-              id: selectedReport.referenceId,
-              date: selectedReport.submittedAt.toISOString().split("T")[0],
-              type: selectedReport.type,
-              description: selectedReport.description,
-              status: selectedReport.status.replace("_", " "),
-              impact: selectedReport.severity,
-            }}
+            report={selectedReport}
           />
         )}
 
