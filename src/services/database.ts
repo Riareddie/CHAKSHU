@@ -443,7 +443,7 @@ class ReportsService extends DatabaseService {
    */
   async delete(id: string): Promise<ServiceResponse<boolean>> {
     return this.executeQuery(
-      () => supabase.from("fraud_reports").delete().eq("id", id),
+      () => supabase.from("reports").delete().eq("id", id),
       "delete report",
     );
   }
