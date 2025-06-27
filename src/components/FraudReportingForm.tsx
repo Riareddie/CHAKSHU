@@ -24,7 +24,6 @@ import useFormValidation, {
   enhancedValidations,
 } from "@/hooks/useFormValidation";
 import { reportsService, evidenceService } from "@/services/database";
-import { ensureUserExists } from "@/services/user-service";
 import type { ReportInsert } from "@/services/database";
 
 interface FormData {
