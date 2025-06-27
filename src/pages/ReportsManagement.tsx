@@ -475,8 +475,8 @@ const ReportsManagement = () => {
                     <SelectItem value="rejected">
                       Rejected ({statusCounts.rejected})
                     </SelectItem>
-                    <SelectItem value="escalated">
-                      Escalated ({statusCounts.escalated})
+                    <SelectItem value="withdrawn">
+                      Withdrawn ({statusCounts.withdrawn})
                     </SelectItem>
                   </SelectContent>
                 </Select>
