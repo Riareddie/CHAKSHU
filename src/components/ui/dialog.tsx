@@ -51,20 +51,39 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-  // Runtime check for DialogTitle accessibility in development
-  if (process.env.NODE_ENV === "development") {
-    React.useEffect(() => {
-      const childrenString = React.Children.toArray(children).join("");
-      if (
-        !childrenString.includes("DialogTitle") &&
-        !childrenString.includes("VisuallyHidden")
-      ) {
-        console.warn(
-          "DialogContent is missing a DialogTitle for accessibility. Please add a DialogTitle or wrap a hidden one with VisuallyHidden.",
-        );
-      }
-    }, [children]);
-  }
+  // Check if children contain DialogTitle
+  const hasDialogTitle = React.useMemo(() => {
+    const childrenString = React.Children.toArray(children).join("");
+    return (
+      childrenString.includes("DialogTitle") ||
+      childrenString.includes("VisuallyHidden")
+    );
+  }, [children]);
+
+  // Auto-inject hidden DialogTitle if missing for accessibility
+  const enhancedChildren = React.useMemo(() => {
+    if (hasDialogTitle) {
+      return children;
+    }
+
+    // Import VisuallyHidden dynamically to avoid circular imports
+    const VisuallyHidden = React.lazy(() =>
+      import("@radix-ui/react-visually-hidden").then((module) => ({
+        default: module.VisuallyHidden,
+      })),
+    );
+
+    return (
+      <>
+        <React.Suspense fallback={null}>
+          <VisuallyHidden>
+            <DialogPrimitive.Title>Dialog</DialogPrimitive.Title>
+          </VisuallyHidden>
+        </React.Suspense>
+        {children}
+      </>
+    );
+  }, [children, hasDialogTitle]);
 
   return (
     <DialogPortal>
@@ -77,7 +96,7 @@ const DialogContent = React.forwardRef<
         )}
         {...props}
       >
-        {children}
+        {enhancedChildren}
         <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
