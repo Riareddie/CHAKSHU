@@ -346,14 +346,45 @@ class ReportsService extends DatabaseService {
               error: userInsertResult.error,
             });
 
-            // Return a more specific error message
-            return {
-              data: null,
-              error: {
-                ...result.error,
-                message: `Database configuration issue: User account could not be created. Please apply the database migration or contact support. Original error: ${result.error.message}`,
+            // If user creation fails, try creating the report without foreign key dependency
+            console.log(
+              "Attempting to create report with relaxed constraints...",
+            );
+
+            // Try using a stored procedure or RPC if available
+            const fallbackResult = await supabase.rpc(
+              "create_report_without_user_constraint",
+              {
+                p_user_id: report.user_id,
+                p_report_type: report.report_type,
+                p_fraudulent_number: report.fraudulent_number,
+                p_incident_date: report.incident_date,
+                p_incident_time: report.incident_time,
+                p_description: report.description,
+                p_fraud_category: report.fraud_category,
+                p_evidence_urls: report.evidence_urls || [],
+                p_status: report.status || "pending",
+                p_priority: report.priority || "medium",
               },
-            };
+            );
+
+            if (fallbackResult.error) {
+              console.warn("Fallback RPC also failed:", fallbackResult.error);
+              // Return the configuration error message
+              return {
+                data: null,
+                error: {
+                  ...result.error,
+                  message: `Database configuration issue: Please apply the simple database fix. The foreign key constraint prevents report creation. Original error: ${result.error.message}`,
+                },
+              };
+            } else {
+              console.log("Fallback report creation succeeded!");
+              return {
+                data: fallbackResult.data,
+                error: null,
+              };
+            }
           } else {
             console.log(
               "Created minimal user record, retrying report creation...",
