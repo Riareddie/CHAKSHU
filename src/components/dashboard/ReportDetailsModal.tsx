@@ -101,93 +101,24 @@ const ReportDetailsModal = ({
     }
   };
 
-  // Enhanced mock data based on the report type and ID
-  const getEnhancedReportData = (baseReport: Report): Report => {
-    const enhancedData: Report = {
-      ...baseReport,
-      title: `${baseReport.type} Report - ${baseReport.id}`,
-      incidentDate: baseReport.date,
-      amountInvolved:
-        baseReport.type === "Email Spam"
-          ? 0
-          : baseReport.type === "SMS Fraud"
-            ? 50000
-            : baseReport.type === "Call Fraud"
-              ? 25000
-              : baseReport.type === "Phishing"
-                ? 75000
-                : 15000,
-      contactInfo: {
-        phone: "+91 98765 43210",
-        email: "user@example.com",
-      },
-      locationInfo: {
-        address: "123 Main Street",
-        city: "Mumbai",
-        state: "Maharashtra",
-        pincode: "400001",
-      },
-      evidenceFiles:
-        baseReport.type !== "Email Spam"
-          ? [
-              {
-                name: "screenshot.png",
-                size: 1024 * 1024 * 2.5, // 2.5 MB
-                uploadedAt: baseReport.date,
-              },
-              {
-                name: "call_recording.mp3",
-                size: 1024 * 1024 * 5.2, // 5.2 MB
-                uploadedAt: baseReport.date,
-              },
-            ]
-          : [],
-      statusHistory: [
-        {
-          status: baseReport.status,
-          date: baseReport.date,
-          comments:
-            baseReport.status === "Resolved"
-              ? "Case investigation completed successfully. Suspect identified and legal action taken."
-              : baseReport.status === "Under Review"
-                ? "Case assigned to investigation team. Evidence being analyzed."
-                : "Report received and initial verification completed.",
-          authorityAction:
-            baseReport.status === "Resolved"
-              ? "Legal Action Taken"
-              : baseReport.status === "Under Review"
-                ? "Investigation Started"
-                : "Case Registered",
-        },
-        {
-          status: "Pending",
-          date: new Date(
-            new Date(baseReport.date).getTime() - 24 * 60 * 60 * 1000,
-          )
-            .toISOString()
-            .split("T")[0],
-          comments: "Report submitted successfully.",
-          authorityAction: "Report Received",
-        },
-      ],
-      authorityComments:
-        baseReport.status === "Resolved"
-          ? "Investigation completed. The reported fraud attempt has been traced and appropriate action taken against the perpetrators. The case is now closed."
-          : baseReport.status === "Under Review"
-            ? "Case is currently under investigation. Our team is analyzing the evidence and working with relevant authorities."
-            : "Your report has been received and is in the queue for review. We will update you soon.",
-      authorityAction:
-        baseReport.status === "Resolved"
-          ? "Case Closed"
-          : baseReport.status === "Under Review"
-            ? "Investigation Started"
-            : "Case Registered",
-    };
-
-    return enhancedData;
+  // Use actual report data without mock enhancement
+  const actualReport = {
+    ...report,
+    title: `${report.type} Report`,
+    incidentDate: report.incident_date || report.date,
+    amountInvolved: report.amount_involved || 0,
+    contactInfo: report.contact_info || { phone: report.fraudulent_number },
+    locationInfo: report.location_info || {},
+    evidenceFiles: (report.evidence_urls || []).map((url, index) => ({
+      name: `evidence_${index + 1}.file`,
+      size: 1024 * 1024, // 1MB default
+      uploadedAt: report.date,
+      url: url,
+    })),
+    authorityComments:
+      report.authority_comments || "No comments available yet.",
+    authorityAction: report.authority_action || "Case Registered",
   };
-
-  const enhancedReport = getEnhancedReportData(report);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
