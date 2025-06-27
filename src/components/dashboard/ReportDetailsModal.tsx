@@ -196,7 +196,7 @@ const ReportDetailsModal = ({
                         Type:
                       </span>
                       <span className="ml-2 text-gray-900 dark:text-white">
-                        {enhancedReport.type}
+                        {actualReport.type}
                       </span>
                     </div>
                     <div>
@@ -205,7 +205,7 @@ const ReportDetailsModal = ({
                       </span>
                       <span className="ml-2 text-gray-900 dark:text-white">
                         {formatDate(
-                          enhancedReport.incidentDate || enhancedReport.date,
+                          actualReport.incidentDate || actualReport.date,
                         )}
                       </span>
                     </div>
@@ -214,7 +214,7 @@ const ReportDetailsModal = ({
                         Description:
                       </span>
                       <p className="mt-1 text-gray-900 dark:text-white bg-white dark:bg-gray-700 p-3 rounded border">
-                        {enhancedReport.description}
+                        {actualReport.description}
                       </p>
                     </div>
                   </div>
