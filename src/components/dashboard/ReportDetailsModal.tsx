@@ -373,48 +373,6 @@ const ReportDetailsModal = ({
                 </div>
               </div>
             </div>
-                      <div
-                        key={index}
-                        className="flex gap-4 p-4 bg-white dark:bg-gray-700 rounded border"
-                      >
-                        <div className="flex-shrink-0">
-                          <div
-                            className={`w-3 h-3 rounded-full mt-2 ${
-                              history.status === "Resolved"
-                                ? "bg-green-500"
-                                : history.status === "Under Review"
-                                  ? "bg-blue-500"
-                                  : "bg-yellow-500"
-                            }`}
-                          ></div>
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(history.status)}`}
-                            >
-                              {history.status}
-                            </span>
-                            {history.authorityAction && (
-                              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
-                                {history.authorityAction}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                            {formatDate(history.date)}
-                          </p>
-                          {history.comments && (
-                            <p className="text-gray-900 dark:text-white">
-                              {history.comments}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
             {/* Next Steps */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
@@ -422,12 +380,12 @@ const ReportDetailsModal = ({
                 Next Steps
               </h3>
               <div className="text-blue-800 dark:text-blue-200">
-                {enhancedReport.status === "Resolved" ? (
+                {actualReport.status === "resolved" ? (
                   <p>
                     Your case has been resolved. If you have any questions about
                     the resolution, please contact our support team.
                   </p>
-                ) : enhancedReport.status === "Under Review" ? (
+                ) : actualReport.status === "under_review" ? (
                   <p>
                     Your case is currently being investigated. We will notify
                     you of any updates. Expected resolution time: 7-14 business
