@@ -11,6 +11,7 @@ import type {
   TablesUpdate,
 } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
+import { cacheService } from "./cache-service";
 
 // Type aliases for convenience - using fraud_reports table
 type FraudReport = {
