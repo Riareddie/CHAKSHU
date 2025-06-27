@@ -74,37 +74,43 @@ interface DisplayReport {
 
 // Convert database report to display format
 const convertToDisplayFormat = (report: Report): DisplayReport => {
+  // Handle location info - fraud_reports table may have location stored differently
   const location = report.location_info
-    ? `${report.location_info.address || ""}, ${report.city || ""}, ${report.state || ""}`
-        .trim()
-        .replace(/^,\s*|,\s*$/g, "") || "Not specified"
-    : `${report.city || ""}, ${report.state || ""}`
-        .trim()
-        .replace(/^,\s*|,\s*$/g, "") || "Not specified";
+    ? typeof report.location_info === "string"
+      ? report.location_info
+      : `${report.location_info.address || ""}, ${report.location_info.city || ""}, ${report.location_info.state || ""}`
+          .trim()
+          .replace(/^,\s*|,\s*$/g, "") || "Not specified"
+    : "Not specified";
+
+  // Handle contact info - may be stored in fraud_reports or derived from fraudulent_number
+  const contactInfo = report.contact_info || {
+    phone: report.fraudulent_number,
+  };
+  const phoneNumber =
+    contactInfo?.phone || report.fraudulent_number || "Not specified";
 
   return {
     id: report.id,
-    type: report.fraud_type
+    type: (report.report_type || report.fraud_category || "unknown")
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase()),
-    title:
-      report.title ||
-      `${report.fraud_type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
+    title: `${(report.fraud_category || report.report_type || "fraud").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} Report`,
     description: report.description,
-    phoneNumber: report.contact_info?.phone || "Not specified",
+    phoneNumber,
     location,
     amount: report.amount_involved,
     status: report.status as DisplayReport["status"],
-    severity: "medium", // Reports table doesn't have severity/priority, default to medium
+    severity: (report.priority as DisplayReport["severity"]) || "medium",
     submittedAt: new Date(report.created_at),
     updatedAt: new Date(report.updated_at),
     referenceId: report.id,
-    evidenceCount: 0, // Will be fetched separately from report_evidence table
-    contactInfo: report.contact_info as { phone?: string; email?: string },
+    evidenceCount: (report.evidence_urls || []).length,
+    contactInfo: contactInfo as { phone?: string; email?: string },
     locationInfo: {
       address: report.location_info?.address,
-      city: report.city,
-      state: report.state,
+      city: report.location_info?.city,
+      state: report.location_info?.state,
     },
   };
 };
