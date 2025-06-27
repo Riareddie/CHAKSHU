@@ -13,37 +13,12 @@ import type {
 import { toast } from "@/hooks/use-toast";
 import { cacheService } from "./cache-service";
 
-// Type aliases for convenience - using fraud_reports table
-type FraudReport = {
-  id: string;
-  user_id: string;
-  report_type: string;
-  fraudulent_number: string;
-  incident_date: string;
-  incident_time?: string;
-  description: string;
-  fraud_category: string;
-  evidence_urls?: string[];
-  status: string;
-  priority: string;
-  created_at: string;
-  updated_at: string;
-};
+// Type aliases for convenience - using reports table with all fields
+type FraudReport = Tables<"reports">;
 
-type FraudReportInsert = {
-  user_id: string;
-  report_type: string;
-  fraudulent_number: string;
-  incident_date: string;
-  incident_time?: string;
-  description: string;
-  fraud_category: string;
-  evidence_urls?: string[];
-  status?: string;
-  priority?: string;
-};
+type FraudReportInsert = TablesInsert<"reports">;
 
-type FraudReportUpdate = Partial<FraudReportInsert>;
+type FraudReportUpdate = TablesUpdate<"reports">;
 
 // Keep legacy names for compatibility
 type Report = FraudReport;
