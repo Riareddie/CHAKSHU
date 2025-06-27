@@ -486,12 +486,65 @@ class ReportsService extends DatabaseService {
     }
 
     return this.executeQuery(async () => {
-      // First try to get reports with RLS policies
-      const result = await supabase
-        .from("fraud_reports")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+      // Retry mechanism for network failures
+      const maxRetries = 3;
+      let lastError: any = null;
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(
+            `Attempting to fetch user reports (attempt ${attempt}/${maxRetries})`,
+          );
+
+          // Try to get reports with RLS policies
+          const result = await supabase
+            .from("fraud_reports")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false });
+
+          // If successful, return immediately
+          if (!result.error) {
+            console.log(
+              `✅ Successfully fetched ${result.data?.length || 0} reports`,
+            );
+            return result;
+          }
+
+          lastError = result.error;
+
+          // If it's a network error, retry
+          if (
+            result.error.message?.includes("Failed to fetch") ||
+            result.error.message?.includes("NetworkError") ||
+            result.error.message?.includes("fetch")
+          ) {
+            if (attempt < maxRetries) {
+              console.warn(
+                `Network error on attempt ${attempt}, retrying in ${attempt * 1000}ms...`,
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, attempt * 1000),
+              );
+              continue;
+            }
+          }
+
+          // If it's not a network error, don't retry
+          break;
+        } catch (error) {
+          lastError = error;
+          console.error(`Exception on attempt ${attempt}:`, error);
+
+          if (attempt < maxRetries) {
+            await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            continue;
+          }
+        }
+      }
+
+      // All retries failed, process the error
+      const result = { error: lastError, data: null };
 
       // If there's a policy error, provide helpful feedback
       if (result.error) {
