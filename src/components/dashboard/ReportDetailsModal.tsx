@@ -11,38 +11,25 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export interface Report {
   id: string;
-  date: string;
-  type: string;
+  title: string;
   description: string;
+  fraud_type: string;
   status: string;
-  impact: string;
-  // Additional detailed fields
-  title?: string;
-  incidentDate?: string;
-  amountInvolved?: number;
-  contactInfo?: {
+  incident_date?: string;
+  amount_involved?: number;
+  contact_info?: {
     phone?: string;
     email?: string;
   };
-  locationInfo?: {
-    address?: string;
-    city?: string;
-    state?: string;
-    pincode?: string;
-  };
-  evidenceFiles?: Array<{
-    name: string;
-    size: number;
-    uploadedAt: string;
-  }>;
-  statusHistory?: Array<{
-    status: string;
-    date: string;
-    comments?: string;
-    authorityAction?: string;
-  }>;
-  authorityComments?: string;
-  authorityAction?: string;
+  location_info?: any;
+  city?: string;
+  state?: string;
+  country?: string;
+  authority_comments?: string;
+  authority_action?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 interface ReportDetailsModalProps {
