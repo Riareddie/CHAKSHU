@@ -48,12 +48,19 @@ export async function ensureUserExists(
       .single();
 
     if (upsertError) {
-      console.error("Failed to upsert user:", upsertError);
+      console.error("Failed to upsert user - Full error details:", {
+        message: upsertError.message,
+        details: upsertError.details,
+        hint: upsertError.hint,
+        code: upsertError.code,
+        error: upsertError,
+      });
 
       // If upsert fails due to RLS, try a different approach
       if (
         upsertError.message?.includes("row-level security") ||
-        upsertError.message?.includes("policy")
+        upsertError.message?.includes("policy") ||
+        upsertError.message?.includes("permission denied")
       ) {
         console.log(
           "RLS policy preventing user creation, trying workaround...",
