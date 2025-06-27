@@ -26,6 +26,7 @@ import useFormValidation, {
   enhancedValidations,
 } from "@/hooks/useFormValidation";
 import { reportsService, evidenceService } from "@/services/database";
+import { supabase } from "@/integrations/supabase/client";
 import type { ReportInsert } from "@/services/database";
 
 interface FormData {
